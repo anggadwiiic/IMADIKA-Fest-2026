@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Laporan - FOUNDEX</title>
+    <link href="./output.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+  </head>
+  <body
+    class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
+  >
+    <!-- Navbar -->
+    <nav
+      id="main-navbar"
+      class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+    >
+      <a
+        href="index.html"
+        class="font-extrabold text-2xl text-primary-dark tracking-tight"
+        >FOUNDEX</a
+      >
+
+      <!-- Nav Links -->
+      <div
+        class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
+      >
+        <a
+          href="index.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Beranda</a
+        >
+        <div class="relative flex items-center h-full">
+          <button
+            id="dropdown-btn"
+            class="flex items-center gap-1 hover:text-primary-dark transition-colors duration-200 focus:outline-none"
+          >
+            Laporan
+            <i
+              data-feather="chevron-down"
+              id="dropdown-icon"
+              class="w-4 h-4 transition-transform duration-300"
+            ></i>
+          </button>
+          <div
+            id="dropdown-menu"
+            class="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
+          >
+            <a
+              href="lapor-hilang.html"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
+              >Kehilangan Barang</a
+            >
+            <a
+              href="lapor-temuan.html"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
+              >Menemukan Barang</a
+            >
+          </div>
+        </div>
+        <a
+          href="daftar-laporan.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Daftar Laporan</a
+        >
+        <a
+          href="riwayat.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Riwayat Laporan</a
+        >
+      </div>
+
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth">
+        <a
+          href="register.html"
+          class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm"
+          >Daftar</a
+        >
+        <a
+          href="login.html"
+          class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm"
+          >Masuk</a
+        >
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-[1200px] mx-auto px-6 lg:px-12 py-10 flex-grow w-full">
+      <!-- Back Navigation -->
+      <a
+        href="javascript:history.back()"
+        class="inline-flex items-center gap-1.5 text-sm font-semibold text-text-secondary hover:text-primary-dark transition mb-8"
+      >
+        <i data-feather="arrow-left" class="w-4 h-4"></i> Kembali
+      </a>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <!-- KOLOM KIRI: INFORMASI BARANG -->
+        <div class="lg:col-span-2">
+          <!-- Gambar Utama -->
+          <div
+            class="w-full h-[300px] sm:h-[400px] rounded-[24px] overflow-hidden bg-surface mb-8"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&w=1000&q=80"
+              alt="Laptop ASUS"
+              class="w-full h-full object-cover"
+            />
+          </div>
+
+          <!-- Header & Badge Status -->
+          <div class="mb-10">
+            <div class="flex items-center gap-2.5 mb-3">
+              <span class="w-2 h-2 rounded-full bg-danger"></span>
+              <span
+                class="text-xs font-bold text-danger uppercase tracking-wider"
+                >Barang Hilang</span
+              >
+              <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+              <span class="text-xs font-semibold text-text-secondary"
+                >Laporan Aktif</span
+              >
+            </div>
+            <h1
+              class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight"
+            >
+              Laptop ASUS Vivobook 14
+            </h1>
+          </div>
+
+          <!-- Detail Minimalis Vertikal -->
+          <div class="space-y-10 max-w-2xl">
+            <!-- Deskripsi -->
+            <div>
+              <p class="text-[16px] text-text-secondary leading-relaxed">
+                Laptop berwarna silver (abu-abu terang). Terdapat stiker logo
+                GitHub holografik dan Docker di bagian cover depan sebelah
+                kanan. Saat hilang tidak menggunakan sleeve atau tas, murni unit
+                laptop saja.
+              </p>
+            </div>
+
+            <!-- List Informasi -->
+            <div class="space-y-4 pt-4 border-t border-gray-100">
+              <div
+                class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-8"
+              >
+                <span class="text-sm text-text-secondary w-32 shrink-0"
+                  >Kategori</span
+                >
+                <span class="text-[16px] font-medium text-text-primary"
+                  >Elektronik</span
+                >
+              </div>
+              <div
+                class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-8"
+              >
+                <span class="text-sm text-text-secondary w-32 shrink-0"
+                  >Pelapor</span
+                >
+                <span class="text-[16px] font-medium text-text-primary"
+                  >Raka M.</span
+                >
+              </div>
+              <div
+                class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-8"
+              >
+                <span class="text-sm text-text-secondary w-32 shrink-0 mt-0.5"
+                  >Waktu Kejadian</span
+                >
+                <div>
+                  <span class="text-[16px] font-medium text-text-primary block"
+                    >19 Sep 2026, 13:00 WIB</span
+                  >
+                </div>
+              </div>
+              <div
+                class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-8"
+              >
+                <span class="text-sm text-text-secondary w-32 shrink-0 mt-0.5"
+                  >Lokasi</span
+                >
+                <div>
+                  <span
+                    class="text-[16px] font-medium text-text-primary block mb-0.5"
+                    >Perpustakaan Pusat</span
+                  >
+                  <span class="text-[15px] text-text-secondary"
+                    >Lantai 2, area meja belajar komunal dekat jendela
+                    utara.</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Helper Privasi -->
+            <div class="pt-6">
+              <p class="text-[13px] text-gray-400 flex items-start gap-2">
+                <i data-feather="lock" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                <span
+                  >Informasi privasi terjaga. Data ciri khusus dan bukti
+                  kepemilikan tidak ditampilkan di halaman publik demi keamanan
+                  proses verifikasi klaim.</span
+                >
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- KOLOM KANAN: PANEL AKSI -->
+        <div class="lg:col-span-1">
+          <!-- Widget Potensi Kecocokan -->
+          <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10">
+            <h2 class="text-[24px] font-bold text-text-primary mb-4 text-left">
+              Potensi Kecocokan
+            </h2>
+
+            <p
+              class="text-[16px] text-text-secondary mb-10 leading-relaxed text-left"
+            >
+              Sistem menemukan barang temuan yang mirip.
+              <span class="font-bold text-text-primary"
+                >Ini bukan bukti mutlak kepemilikan.</span
+              >
+            </p>
+
+            <!-- Alasan -->
+            <div class="mb-10">
+              <h4
+                class="text-[13px] font-bold text-text-secondary uppercase tracking-wider mb-4"
+              >
+                Mengapa disarankan?
+              </h4>
+              <ul class="space-y-4">
+                <li
+                  class="flex items-start gap-3 text-[15px] text-text-primary font-medium"
+                >
+                  <i
+                    data-feather="check"
+                    class="w-5 h-5 text-primary-dark shrink-0 mt-0.5"
+                  ></i>
+                  Kategori sesuai
+                </li>
+                <li
+                  class="flex items-start gap-3 text-[15px] text-text-primary font-medium"
+                >
+                  <i
+                    data-feather="check"
+                    class="w-5 h-5 text-primary-dark shrink-0 mt-0.5"
+                  ></i>
+                  Lokasi dalam zona yang sama
+                </li>
+                <li
+                  class="flex items-start gap-3 text-[15px] text-text-primary font-medium"
+                >
+                  <i
+                    data-feather="check"
+                    class="w-5 h-5 text-primary-dark shrink-0 mt-0.5"
+                  ></i>
+                  Waktu berdekatan
+                </li>
+              </ul>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <a
+              href="ajukan-claim.html"
+              class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-4 px-6 rounded-xl transition text-[16px] shadow-sm focus:outline-none"
+            >
+              Ajukan Klaim
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Standar -->
+    <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
+      <div
+        class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
+      >
+        <div class="md:col-span-6 lg:col-span-5">
+          <div class="flex items-center gap-3 mb-6">
+            <div>
+              <div class="font-extrabold text-lg tracking-tight">FOUNDEX</div>
+              <div class="text-xs text-gray-400">Lost and Found System</div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm mb-8 max-w-[320px] leading-relaxed">
+            Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
+            yang terintegrasi
+          </p>
+          <div class="flex flex-col gap-4 text-sm text-gray-400">
+            <div class="flex items-start gap-3">
+              <i
+                data-feather="map-pin"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span
+                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Surabaya</span
+              >
+            </div>
+            <div class="flex items-center gap-3">
+              <i
+                data-feather="mail"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span>humas@upnjatim.ac.id</span>
+            </div>
+          </div>
+        </div>
+        <div class="hidden lg:block lg:col-span-3"></div>
+        <div class="md:col-span-3 lg:col-span-2">
+          <h4 class="font-bold mb-6 text-white text-base">Quick Links</h4>
+          <ul class="flex flex-col gap-3 text-sm text-gray-400">
+            <li>
+              <a href="index.html" class="hover:text-white transition"
+                >Beranda</a
+              >
+            </li>
+            <li><a href="#" class="hover:text-white transition">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="md:col-span-3 lg:col-span-2">
+          <h4 class="font-bold mb-6 text-white text-base">Social Media</h4>
+          <div class="flex gap-4">
+            <a href="#" class="text-gray-400 hover:text-white transition"
+              ><i data-feather="instagram" class="w-5 h-5"></i
+            ></a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="border-t border-gray-800 pt-6 text-center text-xs text-gray-500"
+      >
+        &copy; 2026 UPN "Veteran" Jawa Timur.
+      </div>
+    </footer>
+
+    <script src="./src/main.js"></script>
+    <script>
+      feather.replace();
+
+      const navbar = document.getElementById("main-navbar");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 10) {
+          navbar.classList.add("shadow-md");
+        } else {
+          navbar.classList.remove("shadow-md");
+        }
+      });
+
+      const dropdownBtn = document.getElementById("dropdown-btn");
+      const dropdownMenu = document.getElementById("dropdown-menu");
+      const dropdownIcon = document.getElementById("dropdown-icon");
+
+      dropdownBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isExpanded = dropdownMenu.classList.contains("opacity-100");
+        if (isExpanded) {
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
+          dropdownMenu.classList.add(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownIcon.classList.remove("rotate-180");
+        } else {
+          dropdownMenu.classList.remove(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownMenu.classList.add("opacity-100", "visible", "translate-y-0");
+          dropdownIcon.classList.add("rotate-180");
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (
+          !dropdownBtn.contains(e.target) &&
+          !dropdownMenu.contains(e.target)
+        ) {
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
+          dropdownMenu.classList.add(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownIcon.classList.remove("rotate-180");
+        }
+      });
+    </script>
+  </body>
+</html>

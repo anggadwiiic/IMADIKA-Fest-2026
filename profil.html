@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profil Saya - FOUNDEX</title>
+    <link href="./output.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+  </head>
+  <body
+    class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
+  >
+    <!-- Navbar -->
+    <nav
+      id="main-navbar"
+      class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+    >
+      <a
+        href="index.html"
+        class="font-extrabold text-2xl text-primary-dark tracking-tight"
+        >FOUNDEX</a
+      >
+
+      <!-- Nav Links -->
+      <div
+        class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
+      >
+        <a
+          href="index.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Beranda</a
+        >
+        <div class="relative flex items-center h-full">
+          <button
+            id="dropdown-btn"
+            class="flex items-center gap-1 hover:text-primary-dark transition-colors duration-200 focus:outline-none"
+          >
+            Laporan
+            <i
+              data-feather="chevron-down"
+              id="dropdown-icon"
+              class="w-4 h-4 transition-transform duration-300"
+            ></i>
+          </button>
+          <div
+            id="dropdown-menu"
+            class="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
+          >
+            <a
+              href="lapor-hilang.html"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
+              >Kehilangan Barang</a
+            >
+            <a
+              href="lapor-temuan.html"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
+              >Menemukan Barang</a
+            >
+          </div>
+        </div>
+        <a
+          href="daftar-laporan.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Daftar Laporan</a
+        >
+        <a
+          href="riwayat.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Riwayat Laporan</a
+        >
+      </div>
+
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth">
+        <!-- Kosong secara default agar dirender dinamis oleh main.js, atau isi tombol cadangan statis jika dibuka offline -->
+        <a
+          href="login.html"
+          class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm"
+          >Masuk</a
+        >
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-[700px] mx-auto px-6 py-12 flex-grow w-full">
+      <div class="mb-10">
+        <h1
+          class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight mb-2"
+        >
+          Profil Saya
+        </h1>
+        <p class="text-text-secondary text-base">
+          Kelola informasi kontak Anda untuk mempermudah proses verifikasi dan
+          pengembalian barang.
+        </p>
+      </div>
+
+      <!-- Avatar Section -->
+      <div class="flex items-center gap-6 mb-10 pb-10 border-b border-gray-100">
+        <div
+          class="w-24 h-24 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-3xl shrink-0"
+        >
+          R
+        </div>
+        <div>
+          <button
+            class="bg-white border border-gray-200 text-text-primary hover:border-primary-dark hover:text-primary-dark font-semibold py-2 px-5 rounded-xl transition text-sm flex items-center gap-2 shadow-sm focus:outline-none mb-2"
+          >
+            <i data-feather="camera" class="w-4 h-4"></i> Ubah Foto Profil
+          </button>
+          <p class="text-[13px] text-text-secondary">
+            JPG atau PNG maksimal 2MB.
+          </p>
+        </div>
+      </div>
+
+      <form id="form-profil" class="space-y-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <!-- Disabled Fields -->
+          <div>
+            <label class="block text-sm font-semibold text-text-primary mb-2"
+              >Nama Lengkap</label
+            >
+            <input
+              type="text"
+              value="Raka M."
+              disabled
+              class="w-full bg-surface border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-500 cursor-not-allowed"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-text-primary mb-2"
+              >Email Kampus</label
+            >
+            <input
+              type="text"
+              value="raka@upnjatim.ac.id"
+              disabled
+              class="w-full bg-surface border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-500 cursor-not-allowed"
+            />
+          </div>
+        </div>
+
+        <!-- Editable Field -->
+        <div>
+          <label class="block text-sm font-semibold text-text-primary mb-2">
+            Nomor WhatsApp <span class="text-danger">*</span>
+          </label>
+          <div class="relative">
+            <span
+              class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-medium"
+              >+62</span
+            >
+            <input
+              type="tel"
+              required
+              placeholder="81234567890"
+              value="81234567890"
+              class="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition"
+            />
+          </div>
+          <p class="text-[13px] text-text-secondary mt-2">
+            Nomor ini hanya akan dibagikan kepada pengguna lain ketika proses
+            klaim barang telah disetujui.
+          </p>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+          <button
+            type="submit"
+            class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-8 rounded-xl transition text-[15px] shadow-sm focus:outline-none"
+          >
+            Simpan Perubahan
+          </button>
+        </div>
+      </form>
+
+      <!-- Telegram Integration Widget -->
+      <div
+        class="mt-12 bg-info-soft/30 border border-blue-100 rounded-[20px] p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+      >
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <i data-feather="send" class="w-5 h-5 text-blue-600"></i>
+            <h3 class="text-[16px] font-bold text-text-primary">
+              Notifikasi Telegram
+            </h3>
+          </div>
+          <p class="text-sm text-text-secondary">
+            Tautkan akun untuk menerima pembaruan instan saat ada barang yang
+            cocok dengan laporan Anda.
+          </p>
+        </div>
+        <button
+          class="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-xl transition text-sm shadow-sm focus:outline-none"
+        >
+          Tautkan Akun
+        </button>
+      </div>
+    </main>
+
+    <!-- Footer Standar (Full) -->
+    <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
+      <div
+        class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
+      >
+        <div class="md:col-span-6 lg:col-span-5">
+          <div class="flex items-center gap-3 mb-6">
+            <div>
+              <div class="font-extrabold text-lg tracking-tight">FOUNDEX</div>
+              <div class="text-xs text-gray-400">Lost and Found System</div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm mb-8 max-w-[320px] leading-relaxed">
+            Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
+            yang terintegrasi
+          </p>
+          <div class="flex flex-col gap-4 text-sm text-gray-400">
+            <div class="flex items-start gap-3">
+              <i
+                data-feather="map-pin"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span
+                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Surabaya</span
+              >
+            </div>
+            <div class="flex items-center gap-3">
+              <i
+                data-feather="mail"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span>humas@upnjatim.ac.id</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i
+                data-feather="phone"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span>08123456789</span>
+            </div>
+          </div>
+        </div>
+        <div class="hidden lg:block lg:col-span-3"></div>
+        <div class="md:col-span-3 lg:col-span-2">
+          <h4 class="font-bold mb-6 text-white text-base">Quick Links</h4>
+          <ul class="flex flex-col gap-3 text-sm text-gray-400">
+            <li>
+              <a href="index.html" class="hover:text-white transition"
+                >Beranda</a
+              >
+            </li>
+            <li><a href="#" class="hover:text-white transition">FAQ</a></li>
+            <li>
+              <a href="login.html" class="hover:text-white transition">Login</a>
+            </li>
+          </ul>
+        </div>
+        <div class="md:col-span-3 lg:col-span-2">
+          <h4 class="font-bold mb-6 text-white text-base">Social Media Kami</h4>
+          <div class="flex gap-4">
+            <a href="#" class="text-gray-400 hover:text-white transition"
+              ><i data-feather="facebook" class="w-5 h-5"></i
+            ></a>
+            <a href="#" class="text-gray-400 hover:text-white transition"
+              ><i data-feather="instagram" class="w-5 h-5"></i
+            ></a>
+            <a href="#" class="text-gray-400 hover:text-white transition"
+              ><i data-feather="youtube" class="w-5 h-5"></i
+            ></a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="border-t border-gray-800 pt-6 text-center text-xs text-gray-500"
+      >
+        &copy; 2026 UPN "Veteran" Jawa Timur. All rights reserved.
+      </div>
+    </footer>
+
+    <script src="./src/main.js"></script>
+    <script>
+      feather.replace();
+      const navbar = document.getElementById("main-navbar");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 10) navbar.classList.add("shadow-md");
+        else navbar.classList.remove("shadow-md");
+      });
+
+      const dropdownBtn = document.getElementById("dropdown-btn");
+      const dropdownMenu = document.getElementById("dropdown-menu");
+      const dropdownIcon = document.getElementById("dropdown-icon");
+
+      dropdownBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isExpanded = dropdownMenu.classList.contains("opacity-100");
+        if (isExpanded) {
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
+          dropdownMenu.classList.add(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownIcon.classList.remove("rotate-180");
+        } else {
+          dropdownMenu.classList.remove(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownMenu.classList.add("opacity-100", "visible", "translate-y-0");
+          dropdownIcon.classList.add("rotate-180");
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (
+          !dropdownBtn.contains(e.target) &&
+          !dropdownMenu.contains(e.target)
+        ) {
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
+          dropdownMenu.classList.add(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownIcon.classList.remove("rotate-180");
+        }
+      });
+    </script>
+  </body>
+</html>

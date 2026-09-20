@@ -1,11 +1,345 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FOUNDEX - Found and Index</title>
+    <link href="./output.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+  </head>
+  <body class="bg-background text-text-primary font-sans antialiased">
+    <!-- Navbar -->
+    <nav
+      id="main-navbar"
+      class="h-[80px] px-6 lg:px-12 bg-background border-b border-gray-100 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+    >
+      <!-- Logo -->
+      <a
+        href="index.html"
+        class="font-extrabold text-2xl text-primary-dark tracking-tight"
+      >
+        FOUNDEX
+      </a>
+
+      <!-- Nav Links (Desktop) -->
+      <div
+        class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
+      >
+        <a
+          href="index.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Beranda</a
+        >
+
+        <!-- Dropdown -->
+        <div class="relative flex items-center h-full">
+          <button
+            id="dropdown-btn"
+            class="flex items-center gap-1 hover:text-primary-dark transition-colors duration-200 focus:outline-none"
+          >
+            Laporan
+            <i
+              data-feather="chevron-down"
+              id="dropdown-icon"
+              class="w-4 h-4 transition-transform duration-300"
+            ></i>
+          </button>
+
+          <!-- Menu Dropdown -->
+          <div
+            id="dropdown-menu"
+            class="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
+          >
+            <a
+              href="lapor-hilang.html"
+              class="block px-5 py-3 text-primary-dark font-medium hover:bg-gray-50 transition"
+              >Kehilangan Barang</a
+            >
+            <a
+              href="lapor-temuan.html"
+              class="block px-5 py-3 text-primary-dark font-medium hover:bg-gray-50 transition"
+              >Menemukan Barang</a
+            >
+          </div>
+        </div>
+
+        <a
+          href="daftar-laporan.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Daftar Laporan</a
+        >
+        <a
+          href="riwayat.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Riwayat Laporan</a
+        >
+      </div>
+
+      <!-- Auth CTA (Akan di-handle oleh checkAuthState di main.js) -->
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth">
+        <!-- Placeholder tombol login/register sebelum JS load -->
+        <a
+          href="register.html"
+          class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm"
+        >
+          Daftar
+        </a>
+        <a
+          href="login.html"
+          class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm"
+        >
+          Masuk
+        </a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button class="lg:hidden text-gray-600">
+        <i data-feather="menu" class="w-6 h-6"></i>
+      </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="max-w-[1200px] mx-auto px-6 lg:px-12 pt-16 pb-12">
+      <div
+        class="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 lg:gap-8"
+      >
+        <div
+          class="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left"
+        >
+          <h1
+            class="text-[36px] lg:text-[44px] font-extrabold text-text-primary leading-[1.15] mb-6"
+          >
+            Laporkan Kehilangan,<br class="hidden lg:block" />
+            Kembalikan Yang Ditemukan
+          </h1>
+          <p class="text-lg text-gray-500 mb-10 max-w-[480px]">
+            Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
+            yang terintegrasi
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <a
+              href="lapor-hilang.html"
+              class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-8 rounded-xl flex items-center justify-center transition text-sm shadow-sm"
+            >
+              Laporkan Kehilangan
+            </a>
+            <a
+              href="lapor-temuan.html"
+              class="bg-white border border-gray-200 text-primary-dark hover:bg-gray-50 font-semibold py-3.5 px-8 rounded-xl flex items-center justify-center transition text-sm shadow-sm"
+            >
+              Laporkan Temuan
+            </a>
+          </div>
+        </div>
+        <div class="w-full lg:w-1/2 flex justify-center lg:justify-end">
+          <img
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqDjNSK_w95slEj8OScBNsIksB9VYh87HnKfNaTOAXYw&s=10"
+            alt="Gedung UPN Veteran Jatim"
+            class="w-[445px] h-[383px] max-w-full object-cover rounded-2xl shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)]"
+          />
+        </div>
+      </div>
+    </main>
+
+    <!-- Section Laporan Kehilangan -->
+    <section class="max-w-[1200px] mx-auto px-6 lg:px-12 py-10">
+      <div class="flex justify-between items-end mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-text-primary">
+            Laporan Kehilangan
+          </h2>
+          <p class="text-sm text-gray-500 mt-2">
+            Laporan kehilangan yang baru dipublikasikan oleh civitas akademika
+          </p>
+        </div>
+        <a
+          href="daftar-laporan.html?type=lost"
+          class="hidden sm:flex text-gray-600 text-sm font-medium items-center gap-1 hover:text-primary-dark transition"
+        >
+          Lihat Semua <i data-feather="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+
+      <!-- Kontainer Laporan Kehilangan (Dikosongkan untuk dirender JS) -->
+      <div
+        id="recent-lost-grid"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <!-- JavaScript akan otomatis memasukkan kartu laporan ke sini -->
+      </div>
+    </section>
+
+    <!-- Section Barang Ditemukan Terbaru -->
+    <section class="max-w-[1200px] mx-auto px-6 lg:px-12 py-10 mb-10">
+      <div class="flex justify-between items-end mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-text-primary">
+            Barang Ditemukan Terbaru
+          </h2>
+          <p class="text-sm text-gray-500 mt-2">
+            Barang yang telah ditemukan oleh civitas akademika
+          </p>
+        </div>
+        <a
+          href="daftar-laporan.html?type=found"
+          class="hidden sm:flex text-gray-600 text-sm font-medium items-center gap-1 hover:text-primary-dark transition"
+        >
+          Lihat Semua <i data-feather="arrow-right" class="w-4 h-4"></i>
+        </a>
+      </div>
+
+      <!-- Kontainer Barang Ditemukan (Dikosongkan untuk dirender JS) -->
+      <div
+        id="recent-found-grid"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <!-- JavaScript akan otomatis memasukkan kartu laporan ke sini -->
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-[#111827] text-white pt-16 pb-6">
+      <div
+        class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
+      >
+        <div class="md:col-span-6 lg:col-span-5">
+          <div class="flex items-center gap-3 mb-6">
+            <div>
+              <div class="font-extrabold text-lg tracking-tight">FOUNDEX</div>
+              <div class="text-xs text-gray-400">Lost and Found System</div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm mb-8 max-w-[320px] leading-relaxed">
+            Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
+            yang terintegrasi
+          </p>
+          <div class="flex flex-col gap-4 text-sm text-gray-400">
+            <div class="flex items-start gap-3">
+              <i
+                data-feather="map-pin"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span
+                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Gunung Anyar,
+                Surabaya</span
+              >
+            </div>
+            <div class="flex items-center gap-3">
+              <i
+                data-feather="mail"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span>humas@upnjatim.ac.id</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <i
+                data-feather="phone"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span>08123456789</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden lg:block lg:col-span-3"></div>
+
+        <div class="md:col-span-3 lg:col-span-2">
+          <h4 class="font-bold mb-6 text-white text-base">Quick Links</h4>
+          <ul class="flex flex-col gap-3 text-sm text-gray-400">
+            <li>
+              <a href="index.html" class="hover:text-white transition"
+                >Beranda</a
+              >
+            </li>
+            <li><a href="#" class="hover:text-white transition">FAQ</a></li>
+            <li>
+              <a href="login.html" class="hover:text-white transition">Login</a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="md:col-span-3 lg:col-span-2">
+          <h4 class="font-bold mb-6 text-white text-base">Social Media Kami</h4>
+          <div class="flex gap-4">
+            <a href="#" class="text-gray-400 hover:text-white transition"
+              ><i data-feather="facebook" class="w-5 h-5"></i
+            ></a>
+            <a href="#" class="text-gray-400 hover:text-white transition"
+              ><i data-feather="instagram" class="w-5 h-5"></i
+            ></a>
+            <a href="#" class="text-gray-400 hover:text-white transition"
+              ><i data-feather="youtube" class="w-5 h-5"></i
+            ></a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="border-t border-gray-800 pt-6 text-center text-xs text-gray-500"
+      >
+        &copy; 2026 UPN "Veteran" Jawa Timur. All rights reserved.
+      </div>
+    </footer>
+
+    <script src="./src/main.js"></script>
+    <script>
+      feather.replace();
+
+      // Logika Efek Scroll Navbar
+      const navbar = document.getElementById("main-navbar");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 10) {
+          navbar.classList.add("shadow-md");
+        } else {
+          navbar.classList.remove("shadow-md");
+        }
+      });
+
+      // Logika Dropdown Menu via Klik
+      const dropdownBtn = document.getElementById("dropdown-btn");
+      const dropdownMenu = document.getElementById("dropdown-menu");
+      const dropdownIcon = document.getElementById("dropdown-icon");
+
+      dropdownBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isExpanded = dropdownMenu.classList.contains("opacity-100");
+
+        if (isExpanded) {
+          closeDropdown();
+        } else {
+          openDropdown();
+        }
+      });
+
+      function openDropdown() {
+        dropdownMenu.classList.remove(
+          "opacity-0",
+          "invisible",
+          "-translate-y-2",
+        );
+        dropdownMenu.classList.add("opacity-100", "visible", "translate-y-0");
+        dropdownIcon.classList.add("rotate-180");
+      }
+
+      function closeDropdown() {
+        dropdownMenu.classList.remove(
+          "opacity-100",
+          "visible",
+          "translate-y-0",
+        );
+        dropdownMenu.classList.add("opacity-0", "invisible", "-translate-y-2");
+        dropdownIcon.classList.remove("rotate-180");
+      }
+
+      // Tutup dropdown jika klik di area mana saja selain tombol dropdown
+      document.addEventListener("click", (e) => {
+        if (
+          !dropdownBtn.contains(e.target) &&
+          !dropdownMenu.contains(e.target)
+        ) {
+          closeDropdown();
+        }
+      });
+    </script>
+  </body>
 </html>

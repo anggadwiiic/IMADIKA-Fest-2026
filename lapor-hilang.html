@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lapor Kehilangan - FOUNDEX</title>
+    <link href="./output.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+  </head>
+  <body
+    class="bg-background text-text-primary font-sans antialiased min-h-screen pb-16"
+  >
+    <nav
+      id="main-navbar"
+      class="bg-white border-b border-gray-200 h-16 px-6 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+    >
+      <a
+        href="index.html"
+        class="font-extrabold text-xl text-primary-dark tracking-tight"
+        >FOUNDEX</a
+      >
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth"></div>
+    </nav>
+
+    <main class="max-w-[1200px] mx-auto px-6 mt-12 pb-16">
+      <div class="mb-10">
+        <h1
+          class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight"
+        >
+          Lapor Kehilangan Barang
+        </h1>
+        <p class="text-text-secondary text-base mt-2 max-w-2xl">
+          Isi informasi barang yang hilang dengan lengkap agar mudah ditemukan
+          oleh civitas akademika.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
+        <div class="lg:col-span-2">
+          <form id="form-lapor-hilang" class="space-y-8">
+            <div>
+              <label class="block text-sm font-semibold text-text-primary mb-2"
+                >Nama Barang <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                id="lap-nama"
+                required
+                placeholder="Contoh: Laptop ASUS Vivobook 14 Grey"
+                class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-text-primary mb-2"
+                >Kategori Barang <span class="text-danger">*</span></label
+              >
+              <div class="relative">
+                <select
+                  id="lap-kategori"
+                  required
+                  class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition appearance-none pr-10 cursor-pointer"
+                >
+                  <option value="" disabled selected>
+                    Pilih kategori yang sesuai...
+                  </option>
+                </select>
+                <i
+                  data-feather="chevron-down"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary pointer-events-none"
+                ></i>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-text-primary mb-2"
+                >Lokasi Terakhir Terlihat
+                <span class="text-danger">*</span></label
+              >
+              <select
+                id="lap-lokasi"
+                required
+                class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition appearance-none pr-10 cursor-pointer"
+              >
+                <option value="" disabled selected>
+                  Pilih lokasi kampus...
+                </option>
+              </select>
+              <div class="relative flex items-center mt-3">
+                <i
+                  data-feather="map-pin"
+                  class="absolute left-4 w-5 h-5 text-text-secondary"
+                ></i>
+                <input
+                  type="text"
+                  id="lap-detail-lokasi"
+                  placeholder="Contoh: Lantai 2, depan Lab PTI"
+                  class="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label
+                  class="block text-sm font-semibold text-text-primary mb-2"
+                  >Perkiraan Tanggal <span class="text-danger">*</span></label
+                >
+                <input
+                  type="date"
+                  id="lap-tanggal"
+                  required
+                  class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-semibold text-text-primary mb-2"
+                  >Perkiraan Waktu (WIB)
+                  <span class="text-danger">*</span></label
+                >
+                <input
+                  type="time"
+                  id="lap-waktu"
+                  required
+                  class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-text-primary mb-2"
+                >Deskripsi Umum <span class="text-danger">*</span></label
+              >
+              <textarea
+                id="lap-deskripsi"
+                required
+                rows="4"
+                placeholder="Contoh: Laptop abu-abu dengan sleeve hitam..."
+                class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition"
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-text-primary mb-2"
+                >Unggah Foto Pendukung
+                <span class="text-text-secondary font-normal"
+                  >(Opsional)</span
+                ></label
+              >
+              <input
+                type="file"
+                id="lap-foto"
+                accept="image/*"
+                class="w-full text-sm text-text-secondary file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-soft file:text-primary-dark hover:file:bg-primary-soft/80 cursor-pointer"
+              />
+            </div>
+
+            <div
+              id="lap-error"
+              class="text-danger text-sm font-semibold hidden bg-danger-soft p-4 rounded-xl border border-red-200"
+            ></div>
+
+            <div class="flex justify-end gap-4 pt-4">
+              <a
+                href="index.html"
+                class="px-8 py-3 rounded-xl border border-gray-200 text-text-primary font-semibold text-sm hover:bg-surface transition"
+                >Batal</a
+              >
+              <button
+                type="submit"
+                id="btn-submit-laporan"
+                class="px-8 py-3 rounded-xl bg-primary-dark hover:bg-primary-pressed text-white font-semibold text-sm transition shadow-sm"
+              >
+                Kirim Laporan
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <script src="./src/main.js"></script>
+    <script>
+      feather.replace();
+    </script>
+  </body>
+</html>

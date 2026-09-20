@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tinjau Klaim - FOUNDEX</title>
+    <link href="./output.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+  </head>
+  <body
+    class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
+  >
+    <!-- Navbar -->
+    <nav
+      id="main-navbar"
+      class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+    >
+      <a
+        href="index.html"
+        class="font-extrabold text-2xl text-primary-dark tracking-tight"
+        >FOUNDEX</a
+      >
+
+      <!-- Nav Links -->
+      <div
+        class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
+      >
+        <a
+          href="index.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Beranda</a
+        >
+        <div class="relative flex items-center h-full">
+          <button
+            id="dropdown-btn"
+            class="flex items-center gap-1 hover:text-primary-dark transition-colors duration-200 focus:outline-none"
+          >
+            Laporan
+            <i
+              data-feather="chevron-down"
+              id="dropdown-icon"
+              class="w-4 h-4 transition-transform duration-300"
+            ></i>
+          </button>
+          <div
+            id="dropdown-menu"
+            class="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
+          >
+            <a
+              href="lapor-hilang.html"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
+              >Kehilangan Barang</a
+            >
+            <a
+              href="lapor-temuan.html"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
+              >Menemukan Barang</a
+            >
+          </div>
+        </div>
+        <a
+          href="daftar-laporan.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Daftar Laporan</a
+        >
+        <a
+          href="riwayat.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Riwayat Laporan</a
+        >
+      </div>
+
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth">
+        <a
+          href="register.html"
+          class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm"
+          >Daftar</a
+        >
+        <a
+          href="login.html"
+          class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm"
+          >Masuk</a
+        >
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-[800px] mx-auto px-6 py-12 flex-grow w-full">
+      <a
+        href="javascript:history.back()"
+        class="inline-flex items-center gap-1.5 text-sm font-semibold text-text-secondary hover:text-primary-dark transition mb-8"
+      >
+        <i data-feather="arrow-left" class="w-4 h-4"></i> Kembali ke Riwayat
+      </a>
+
+      <div class="mb-10">
+        <h1
+          class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight mb-2"
+        >
+          Tinjau Pengajuan Klaim
+        </h1>
+        <p class="text-text-secondary text-base">
+          Verifikasi kecocokan jawaban dari pengklaim dengan ciri rahasia barang
+          yang Anda temukan.
+        </p>
+      </div>
+
+      <!-- Ringkasan Barang -->
+      <div
+        class="bg-surface border border-gray-200 rounded-[16px] p-5 mb-10 flex items-center gap-4"
+      >
+        <img
+          src="https://images.unsplash.com/photo-1582201943021-e8e3a241b777?ixlib=rb-4.0.3&w=200&q=80"
+          alt="Kunci"
+          class="w-20 h-20 object-cover rounded-xl shrink-0 bg-white border border-gray-100"
+        />
+        <div>
+          <div
+            class="text-[11px] font-bold text-success uppercase tracking-wider mb-1"
+          >
+            Laporan Anda
+          </div>
+          <h3 class="text-[16px] font-bold text-text-primary">
+            Kunci Motor Honda
+          </h3>
+          <div class="text-[13px] text-text-secondary mt-1">
+            Parkiran Gedung B &bull; 18 Sep 2026
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-8">
+        <div
+          class="flex items-center justify-between border-b border-gray-100 pb-4"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-text-secondary"
+            >
+              R
+            </div>
+            <div>
+              <div class="text-[15px] font-bold text-text-primary">Raka M.</div>
+              <div class="text-[12px] text-text-secondary">
+                Diajukan pada 20 Sep 2026, 14:30 WIB
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label
+            class="block text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider"
+          >
+            Jawaban Ciri Khusus / Pembuktian
+          </label>
+          <div
+            class="bg-white border border-gray-200 rounded-[16px] p-6 text-[16px] text-text-primary leading-relaxed shadow-sm"
+          >
+            "Kunci motornya ada gantungan tali warna merah bertuliskan 'Stay
+            Humble'. Di ujung kuncinya ada sedikit lecet bekas jatuh, dan
+            remotenya warna hitam."
+          </div>
+        </div>
+
+        <!-- Tombol Keputusan -->
+        <div
+          class="pt-10 flex flex-col sm:flex-row items-center justify-end gap-4 border-t border-gray-200"
+        >
+          <p class="text-[13px] text-text-secondary sm:mr-auto">
+            Keputusan ini bersifat final dan tidak dapat dibatalkan.
+          </p>
+          <button
+            onclick="showModal('modal-tolak')"
+            class="w-full sm:w-auto bg-transparent border-2 border-danger text-danger hover:bg-danger-soft font-semibold py-3 px-8 rounded-xl transition text-[15px] focus:outline-none"
+          >
+            Tolak Klaim
+          </button>
+          <button
+            onclick="showModal('modal-setuju')"
+            class="w-full sm:w-auto bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-8 rounded-xl transition text-[15px] shadow-sm focus:outline-none"
+          >
+            Setujui Klaim
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal Konfirmasi Setuju -->
+    <div
+      id="modal-setuju"
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
+    >
+      <div
+        class="bg-white rounded-[24px] p-8 max-w-md w-full shadow-2xl transform scale-95 transition-transform duration-300"
+        id="modal-setuju-content"
+      >
+        <div
+          class="w-12 h-12 rounded-full bg-success-soft text-success flex items-center justify-center mb-5"
+        >
+          <i data-feather="check" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-text-primary mb-2">
+          Setujui Klaim Ini?
+        </h3>
+        <p class="text-sm text-text-secondary leading-relaxed mb-8">
+          Dengan menyetujui, Anda mengonfirmasi bahwa barang ini milik
+          <span class="font-bold text-text-primary">Raka M</span>. Nomor
+          WhatsApp Anda akan dibagikan kepadanya untuk proses pengembalian.
+        </p>
+        <div class="flex gap-3">
+          <button
+            onclick="hideModal('modal-setuju')"
+            class="flex-1 bg-surface text-text-primary hover:bg-gray-200 font-semibold py-3 rounded-xl transition text-sm focus:outline-none"
+          >
+            Batal
+          </button>
+          <button
+            onclick="
+              alert('Klaim disetujui!');
+              window.location.href = 'riwayat.html';
+            "
+            class="flex-1 bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 rounded-xl transition text-sm shadow-sm focus:outline-none"
+          >
+            Ya, Setujui
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Konfirmasi Tolak -->
+    <div
+      id="modal-tolak"
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
+    >
+      <div
+        class="bg-white rounded-[24px] p-8 max-w-md w-full shadow-2xl transform scale-95 transition-transform duration-300"
+        id="modal-tolak-content"
+      >
+        <div
+          class="w-12 h-12 rounded-full bg-danger-soft text-danger flex items-center justify-center mb-5"
+        >
+          <i data-feather="x" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-text-primary mb-2">Tolak Klaim?</h3>
+        <p class="text-sm text-text-secondary leading-relaxed mb-8">
+          Apakah Anda yakin jawaban dari pengguna ini tidak sesuai dengan ciri
+          rahasia barang Anda?
+        </p>
+        <div class="flex gap-3">
+          <button
+            onclick="hideModal('modal-tolak')"
+            class="flex-1 bg-surface text-text-primary hover:bg-gray-200 font-semibold py-3 rounded-xl transition text-sm focus:outline-none"
+          >
+            Batal
+          </button>
+          <button
+            onclick="
+              alert('Klaim ditolak.');
+              window.location.href = 'riwayat.html';
+            "
+            class="flex-1 bg-danger hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition text-sm shadow-sm focus:outline-none"
+          >
+            Ya, Tolak Klaim
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Standar (Full) -->
+    <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
+      <div
+        class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
+      >
+        <div class="md:col-span-6 lg:col-span-5">
+          <div class="flex items-center gap-3 mb-6">
+            <div>
+              <div class="font-extrabold text-lg tracking-tight">FOUNDEX</div>
+              <div class="text-xs text-gray-400">Lost and Found System</div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm mb-8 max-w-[320px] leading-relaxed">
+            Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
+            yang terintegrasi
+          </p>
+          <div class="flex flex-col gap-4 text-sm text-gray-400">
+            <div class="flex items-start gap-3">
+              <i
+                data-feather="map-pin"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span
+                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Surabaya</span
+              >
+            </div>
+            <div class="flex items-center gap-3">
+              <i
+                data-feather="mail"
+                class="w-5 h-5 text-primary-dark shrink-0"
+              ></i>
+              <span>humas@upnjatim.ac.id</span>
+            </div>
+          </div>
+        </div>
+        <div class="hidden lg:block lg:col-span-3"></div>
+        <div class="md:col-span-3 lg:col-span-2">
+          <h4 class="font-bold mb-6 text-white text-base">Quick Links</h4>
+          <ul class="flex flex-col gap-3 text-sm text-gray-400">
+            <li>
+              <a href="index.html" class="hover:text-white transition"
+                >Beranda</a
+              >
+            </li>
+            <li><a href="#" class="hover:text-white transition">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="md:col-span-3 lg:col-span-2">
+          <h4 class="font-bold mb-6 text-white text-base">Social Media</h4>
+          <div class="flex gap-4">
+            <a href="#" class="text-gray-400 hover:text-white transition"
+              ><i data-feather="instagram" class="w-5 h-5"></i
+            ></a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="border-t border-gray-800 pt-6 text-center text-xs text-gray-500"
+      >
+        &copy; 2026 UPN "Veteran" Jawa Timur.
+      </div>
+    </footer>
+
+    <script src="./src/main.js"></script>
+    <script>
+      feather.replace();
+
+      const navbar = document.getElementById("main-navbar");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 10) navbar.classList.add("shadow-md");
+        else navbar.classList.remove("shadow-md");
+      });
+
+      const dropdownBtn = document.getElementById("dropdown-btn");
+      const dropdownMenu = document.getElementById("dropdown-menu");
+      const dropdownIcon = document.getElementById("dropdown-icon");
+
+      dropdownBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isExpanded = dropdownMenu.classList.contains("opacity-100");
+        if (isExpanded) {
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
+          dropdownMenu.classList.add(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownIcon.classList.remove("rotate-180");
+        } else {
+          dropdownMenu.classList.remove(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownMenu.classList.add("opacity-100", "visible", "translate-y-0");
+          dropdownIcon.classList.add("rotate-180");
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (
+          !dropdownBtn.contains(e.target) &&
+          !dropdownMenu.contains(e.target)
+        ) {
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
+          dropdownMenu.classList.add(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownIcon.classList.remove("rotate-180");
+        }
+      });
+
+      function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const content = document.getElementById(modalId + "-content");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        setTimeout(() => {
+          modal.classList.remove("opacity-0");
+          content.classList.remove("scale-95");
+        }, 10);
+      }
+
+      function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const content = document.getElementById(modalId + "-content");
+        modal.classList.add("opacity-0");
+        content.classList.add("scale-95");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+        }, 300);
+      }
+    </script>
+  </body>
+</html>
