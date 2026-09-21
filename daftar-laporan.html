@@ -9,12 +9,12 @@
     <script src="https://unpkg.com/feather-icons"></script>
   </head>
   <body
-    class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
+    class="bg-background text-text-primary font-sans antialiased flex flex-col min-h-screen"
   >
-    <!-- Navbar -->
+    <!-- Navbar (Disinkronkan 100% dengan index.html) -->
     <nav
       id="main-navbar"
-      class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+      class="h-[80px] px-6 lg:px-12 bg-background border-b border-gray-100 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
     >
       <a
         href="index.html"
@@ -22,7 +22,6 @@
         >FOUNDEX</a
       >
 
-      <!-- Nav Links (Desktop) -->
       <div
         class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
       >
@@ -43,24 +42,25 @@
               class="w-4 h-4 transition-transform duration-300"
             ></i>
           </button>
-          <!-- Menu Dropdown -->
           <div
             id="dropdown-menu"
             class="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
           >
             <a
               href="lapor-hilang.html"
-              class="block px-5 py-3 text-text-primary font-medium hover:bg-gray-50 transition"
+              class="block px-5 py-3 text-primary-dark font-medium hover:bg-gray-50 transition"
               >Kehilangan Barang</a
             >
             <a
               href="lapor-temuan.html"
-              class="block px-5 py-3 text-text-primary font-medium hover:bg-gray-50 transition"
+              class="block px-5 py-3 text-primary-dark font-medium hover:bg-gray-50 transition"
               >Menemukan Barang</a
             >
           </div>
         </div>
-        <a href="daftar-laporan.html" class="text-primary-dark font-semibold"
+        <a
+          href="daftar-laporan.html"
+          class="text-primary-dark font-semibold transition-colors duration-200"
           >Daftar Laporan</a
         >
         <a
@@ -82,11 +82,14 @@
           >Masuk</a
         >
       </div>
+
+      <button class="lg:hidden text-gray-600 focus:outline-none">
+        <i data-feather="menu" class="w-6 h-6"></i>
+      </button>
     </nav>
 
     <!-- Main Content -->
     <main class="max-w-[1200px] mx-auto px-6 lg:px-12 py-12 flex-grow w-full">
-      <!-- Header Section -->
       <div class="mb-8">
         <h1
           class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight mb-2"
@@ -100,7 +103,6 @@
 
       <!-- Search & Filters -->
       <div class="mb-12 space-y-4">
-        <!-- Search Bar -->
         <div class="relative w-full">
           <i
             data-feather="search"
@@ -112,7 +114,6 @@
             placeholder="Cari nama barang..."
             class="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-12 py-3.5 text-base text-text-primary focus:outline-none focus:border-primary-dark focus:ring-1 focus:ring-primary-dark transition shadow-sm"
           />
-
           <button
             type="button"
             id="clear-search"
@@ -122,12 +123,11 @@
           </button>
         </div>
 
-        <!-- Filter Row -->
         <div
           class="flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Kategori -->
+            <!-- Filter Kategori Dinamis -->
             <div class="relative">
               <button
                 onclick="toggleFilter('filter-kategori')"
@@ -144,25 +144,11 @@
                 id="filter-kategori"
                 class="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-200 z-40 overflow-hidden py-1"
               >
-                <button
-                  class="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-primary-dark"
-                >
-                  Semua Kategori
-                </button>
-                <button
-                  class="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-text-primary"
-                >
-                  Elektronik
-                </button>
-                <button
-                  class="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-text-primary"
-                >
-                  Dompet & Tas
-                </button>
+                <!-- Diisi via JS -->
               </div>
             </div>
 
-            <!-- Jenis Laporan -->
+            <!-- Filter Jenis Laporan -->
             <div class="relative">
               <button
                 onclick="toggleFilter('filter-jenis')"
@@ -172,7 +158,7 @@
                   data-feather="file-text"
                   class="w-4 h-4 text-text-secondary"
                 ></i>
-                <span id="label-jenis">Jenis Laporan</span>
+                <span id="label-jenis">Semua Jenis</span>
                 <i
                   data-feather="chevron-down"
                   class="w-4 h-4 text-text-secondary ml-1"
@@ -183,24 +169,27 @@
                 class="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-200 z-40 overflow-hidden py-1"
               >
                 <button
-                  class="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-text-primary"
+                  data-value="all"
+                  class="filter-jenis-opt w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-primary-dark"
                 >
                   Semua Jenis
                 </button>
                 <button
-                  class="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-text-primary"
+                  data-value="lost"
+                  class="filter-jenis-opt w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-text-primary"
                 >
                   Kehilangan Barang
                 </button>
                 <button
-                  class="w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-text-primary"
+                  data-value="found"
+                  class="filter-jenis-opt w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-text-primary"
                 >
                   Barang Ditemukan
                 </button>
               </div>
             </div>
 
-            <!-- Tanggal (Kalender Kustom) -->
+            <!-- Filter Tanggal -->
             <div class="relative">
               <button
                 onclick="toggleFilter('filter-tanggal')"
@@ -210,7 +199,7 @@
                   data-feather="calendar"
                   class="w-4 h-4 text-text-secondary"
                 ></i>
-                <span id="label-tanggal">Pilih Tanggal</span>
+                <span id="label-tanggal">Semua Waktu</span>
                 <i
                   data-feather="chevron-down"
                   class="w-4 h-4 text-text-secondary ml-1"
@@ -225,11 +214,13 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-4">
                   <button
+                    id="btn-filter-hari-ini"
                     class="border border-gray-200 rounded-lg py-1.5 text-xs font-semibold hover:border-primary-dark hover:text-primary-dark transition"
                   >
                     Hari ini
                   </button>
                   <button
+                    id="btn-filter-minggu-ini"
                     class="border border-gray-200 rounded-lg py-1.5 text-xs font-semibold hover:border-primary-dark hover:text-primary-dark transition"
                   >
                     Minggu ini
@@ -240,6 +231,7 @@
                 </div>
                 <input
                   type="date"
+                  id="input-filter-tanggal"
                   class="w-full bg-surface border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary-dark transition"
                 />
               </div>
@@ -247,7 +239,8 @@
 
             <button
               type="button"
-              class="text-sm font-semibold text-text-secondary hover:text-primary-dark transition px-2"
+              id="btn-reset-filter"
+              class="text-sm font-semibold text-text-secondary hover:text-primary-dark transition px-2 hidden"
             >
               Reset Filter
             </button>
@@ -269,12 +262,14 @@
                 class="absolute top-full right-0 mt-2 w-32 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-200 z-40 overflow-hidden py-1"
               >
                 <button
-                  class="w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 text-primary-dark"
+                  data-value="desc"
+                  class="filter-urutkan-opt w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 text-primary-dark"
                 >
                   Terbaru
                 </button>
                 <button
-                  class="w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 text-text-primary"
+                  data-value="asc"
+                  class="filter-urutkan-opt w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 text-text-primary"
                 >
                   Terlama
                 </button>
@@ -283,329 +278,34 @@
           </div>
         </div>
 
-        <div class="text-sm text-text-secondary pt-2">
-          Menampilkan <span class="font-bold text-text-primary">6</span> dari
-          <span class="font-bold text-text-primary">24</span> laporan
+        <div id="info-hasil" class="text-sm text-text-secondary pt-2 hidden">
+          Menampilkan
+          <span id="count-current" class="font-bold text-text-primary">0</span>
+          dari
+          <span id="count-total" class="font-bold text-text-primary">0</span>
+          laporan
         </div>
       </div>
 
-      <!-- Grid Laporan (Statis / Mock Cards) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Card 1 (Hilang) -->
-        <div
-          class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)] shadow-sm"
-        >
-          <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-2 h-2 rounded-full bg-danger"></span>
-            <span class="text-xs font-bold text-danger uppercase tracking-wider"
-              >Barang Hilang</span
-            >
-          </div>
-          <img
-            src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&w=400&q=80"
-            alt="Laptop ASUS"
-            class="w-full h-44 object-cover rounded-xl mb-5"
-          />
-          <h3 class="text-lg font-bold text-text-primary truncate mb-3">
-            Laptop ASUS Vivobook 14
-          </h3>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="tag" class="w-3.5 h-3.5"></i> Elektronik
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="map-pin" class="w-3.5 h-3.5"></i> Perpustakaan
-            Pusat
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
-            <i data-feather="calendar" class="w-3.5 h-3.5"></i> 19 Sep 2026
-          </div>
-          <p class="text-xs text-gray-500 line-clamp-2 mb-6 leading-relaxed">
-            Warna silver, terdapat stiker GitHub dan Docker di cover depan.
-            Hilang sekitar jam istirahat.
-          </p>
-          <a
-            href="detail-laporan.html"
-            class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block"
-          >
-            Lihat Detail
-          </a>
-        </div>
-
-        <!-- Card 2 (Ditemukan) -->
-        <div
-          class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)] shadow-sm"
-        >
-          <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-2 h-2 rounded-full bg-success"></span>
-            <span
-              class="text-xs font-bold text-success uppercase tracking-wider"
-              >Barang Ditemukan</span
-            >
-          </div>
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzgpFIBXhooCBfbsDB_JqhiuCkZ2NMfS5dBv4NhXQ5kA&s=10"
-            alt="Kunci"
-            class="w-full h-44 object-cover rounded-xl mb-5"
-          />
-          <h3 class="text-lg font-bold text-text-primary truncate mb-3">
-            Kunci Motor Honda
-          </h3>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="tag" class="w-3.5 h-3.5"></i> Kunci
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="map-pin" class="w-3.5 h-3.5"></i> Parkiran Gedung B
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
-            <i data-feather="calendar" class="w-3.5 h-3.5"></i> 18 Sep 2026
-          </div>
-          <p class="text-xs text-gray-500 line-clamp-2 mb-6 leading-relaxed">
-            Kunci kontak model magnetik dengan gantungan tali warna merah dan
-            remote.
-          </p>
-          <a
-            href="detail-laporan.html"
-            class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block"
-          >
-            Lihat Detail
-          </a>
-        </div>
-
-        <!-- Card 3 (Hilang) -->
-        <div
-          class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)] shadow-sm"
-        >
-          <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-2 h-2 rounded-full bg-danger"></span>
-            <span class="text-xs font-bold text-danger uppercase tracking-wider"
-              >Barang Hilang</span
-            >
-          </div>
-          <img
-            src="https://images.unsplash.com/photo-1628151015968-3a4429e9ef04?ixlib=rb-4.0.3&w=400&q=80"
-            alt="Dompet"
-            class="w-full h-44 object-cover rounded-xl mb-5"
-          />
-          <h3 class="text-lg font-bold text-text-primary truncate mb-3">
-            Dompet Kulit Cokelat
-          </h3>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="tag" class="w-3.5 h-3.5"></i> Dompet & Tas
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="map-pin" class="w-3.5 h-3.5"></i> Kantin Utama
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
-            <i data-feather="calendar" class="w-3.5 h-3.5"></i> 17 Sep 2026
-          </div>
-          <p class="text-xs text-gray-500 line-clamp-2 mb-6 leading-relaxed">
-            Dompet lipat kulit warna cokelat tua berisi KTM atas nama Raka.
-          </p>
-          <a
-            href="detail-laporan.html"
-            class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block"
-          >
-            Lihat Detail
-          </a>
-        </div>
-
-        <!-- Card 4 (Ditemukan) -->
-        <div
-          class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)] shadow-sm"
-        >
-          <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-2 h-2 rounded-full bg-success"></span>
-            <span
-              class="text-xs font-bold text-success uppercase tracking-wider"
-              >Barang Ditemukan</span
-            >
-          </div>
-          <img
-            src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?ixlib=rb-4.0.3&w=400&q=80"
-            alt="Botol"
-            class="w-full h-44 object-cover rounded-xl mb-5"
-          />
-          <h3 class="text-lg font-bold text-text-primary truncate mb-3">
-            Botol Minum Hijau
-          </h3>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="tag" class="w-3.5 h-3.5"></i> Lainnya
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="map-pin" class="w-3.5 h-3.5"></i> Lapangan Basket
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
-            <i data-feather="calendar" class="w-3.5 h-3.5"></i> 16 Sep 2026
-          </div>
-          <p class="text-xs text-gray-500 line-clamp-2 mb-6 leading-relaxed">
-            Tumbler stainless steel ukuran 800ml warna hijau sage dengan goresan
-            kecil.
-          </p>
-          <a
-            href="detail-laporan.html"
-            class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block"
-          >
-            Lihat Detail
-          </a>
-        </div>
-
-        <!-- Card 5 (Ditemukan) -->
-        <div
-          class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)] shadow-sm"
-        >
-          <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-2 h-2 rounded-full bg-success"></span>
-            <span
-              class="text-xs font-bold text-success uppercase tracking-wider"
-              >Barang Ditemukan</span
-            >
-          </div>
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvMeDXKNMzGYuV9xA8iWrWZox9jnpTnt3_qYzlq_J5sw&s=10"
-            alt="Payung"
-            class="w-full h-44 object-cover rounded-xl mb-5"
-          />
-          <h3 class="text-lg font-bold text-text-primary truncate mb-3">
-            Payung Lipat Hitam
-          </h3>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="tag" class="w-3.5 h-3.5"></i> Lainnya
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="map-pin" class="w-3.5 h-3.5"></i> Gedung Kuliah
-            Bersama
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
-            <i data-feather="calendar" class="w-3.5 h-3.5"></i> 15 Sep 2026
-          </div>
-          <p class="text-xs text-gray-500 line-clamp-2 mb-6 leading-relaxed">
-            Payung lipat otomatis warna hitam polos gagang kayu tertinggal di
-            dekat pintu.
-          </p>
-          <a
-            href="detail-laporan.html"
-            class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block"
-          >
-            Lihat Detail
-          </a>
-        </div>
-
-        <!-- Card 6 (Hilang) -->
-        <div
-          class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)] shadow-sm"
-        >
-          <div class="flex items-center gap-1.5 mb-3">
-            <span class="w-2 h-2 rounded-full bg-danger"></span>
-            <span class="text-xs font-bold text-danger uppercase tracking-wider"
-              >Barang Hilang</span
-            >
-          </div>
-          <img
-            src="https://images.unsplash.com/photo-1544816155-12df9643f363?ixlib=rb-4.0.3&w=400&q=80"
-            alt="Buku"
-            class="w-full h-44 object-cover rounded-xl mb-5"
-          />
-          <h3 class="text-lg font-bold text-text-primary truncate mb-3">
-            Buku Catatan Biru
-          </h3>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="tag" class="w-3.5 h-3.5"></i> Alat Tulis & Buku
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2">
-            <i data-feather="map-pin" class="w-3.5 h-3.5"></i> Ruang Kelas 3.2
-          </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
-            <i data-feather="calendar" class="w-3.5 h-3.5"></i> 14 Sep 2026
-          </div>
-          <p class="text-xs text-gray-500 line-clamp-2 mb-6 leading-relaxed">
-            Buku catatan binder B5 warna biru muda berisi catatan kuliah
-            kalkulus.
-          </p>
-          <a
-            href="detail-laporan.html"
-            class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block"
-          >
-            Lihat Detail
-          </a>
-        </div>
+      <!-- Grid Laporan Dinamis -->
+      <div
+        id="reports-grid"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
+        <!-- Akan dirender JS -->
       </div>
 
-      <!-- Pagination -->
-      <div class="flex items-center justify-center gap-2 mt-12">
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-400 cursor-not-allowed focus:outline-none"
-          disabled
-        >
-          <i data-feather="chevron-left" class="w-4 h-4"></i>
-        </button>
-
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-xl bg-primary-dark text-white font-bold shadow-sm focus:outline-none"
-        >
-          1
-        </button>
-
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-xl text-text-secondary hover:bg-surface font-semibold transition focus:outline-none"
-        >
-          2
-        </button>
-
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-xl text-text-secondary hover:bg-surface font-semibold transition focus:outline-none"
-        >
-          3
-        </button>
-
-        <!-- Paginasi Pop-up untuk titik-titik -->
-        <div class="relative">
-          <button
-            onclick="toggleFilter('pagination-popup')"
-            class="w-10 h-10 flex items-center justify-center rounded-xl text-text-secondary hover:text-primary-dark hover:bg-primary-soft font-semibold transition focus:outline-none"
-          >
-            ...
-          </button>
-          <div
-            id="pagination-popup"
-            class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform translate-y-2 transition-all duration-200 z-40 p-4 text-center"
-          >
-            <label
-              class="block text-xs font-bold text-text-secondary mb-2 uppercase tracking-wide"
-              >Lompat ke Halaman</label
-            >
-            <div class="flex items-center gap-2">
-              <input
-                type="number"
-                min="1"
-                max="24"
-                class="w-full bg-surface border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary-dark text-center"
-                placeholder="1-24"
-              />
-              <button
-                class="bg-primary-dark text-white p-2 rounded-lg hover:bg-primary-pressed transition"
-              >
-                <i data-feather="arrow-right" class="w-4 h-4"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-xl text-text-secondary hover:bg-surface font-semibold transition focus:outline-none"
-        >
-          8
-        </button>
-
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-text-secondary hover:bg-surface transition focus:outline-none"
-        >
-          <i data-feather="chevron-right" class="w-4 h-4"></i>
-        </button>
+      <!-- Paginasi Dinamis -->
+      <div
+        id="pagination-container"
+        class="flex items-center justify-center gap-2 mt-12 hidden"
+      >
+        <!-- Akan dirender JS -->
       </div>
     </main>
 
-    <!-- Footer Standar (Full) -->
-    <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
+    <!-- Footer (Disinkronkan 100% dengan index.html) -->
+    <footer class="bg-[#111827] text-white pt-16 pb-6">
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
       >
@@ -627,7 +327,8 @@
                 class="w-5 h-5 text-primary-dark shrink-0"
               ></i>
               <span
-                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Surabaya</span
+                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Gunung Anyar,
+                Surabaya</span
               >
             </div>
             <div class="flex items-center gap-3">
@@ -690,11 +391,11 @@
     <script>
       feather.replace();
 
-      // Universal Dropdown & Filter Toggle Logic
+      // Universal Dropdown & Filter Toggle Logic (UI)
       let activeDropdown = null;
-
       function toggleFilter(id) {
         const menu = document.getElementById(id);
+        if (!menu) return;
         const isExpanded = menu.classList.contains("opacity-100");
 
         if (activeDropdown && activeDropdown !== menu) {
@@ -715,13 +416,8 @@
           menu.classList.add("opacity-0", "invisible", "-translate-y-2");
           activeDropdown = null;
         } else {
-          if (id === "pagination-popup") {
-            menu.classList.remove("opacity-0", "invisible", "translate-y-2");
-            menu.classList.add("opacity-100", "visible", "translate-y-0");
-          } else {
-            menu.classList.remove("opacity-0", "invisible", "-translate-y-2");
-            menu.classList.add("opacity-100", "visible", "translate-y-0");
-          }
+          menu.classList.remove("opacity-0", "invisible", "-translate-y-2");
+          menu.classList.add("opacity-100", "visible", "translate-y-0");
           activeDropdown = menu;
         }
       }
@@ -733,11 +429,9 @@
       dropdownBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         toggleFilter("dropdown-menu");
-        if (dropdownMenu.classList.contains("opacity-100")) {
-          dropdownIcon.classList.add("rotate-180");
-        } else {
-          dropdownIcon.classList.remove("rotate-180");
-        }
+        dropdownMenu.classList.contains("opacity-100")
+          ? dropdownIcon.classList.add("rotate-180")
+          : dropdownIcon.classList.remove("rotate-180");
       });
 
       document.addEventListener("click", (e) => {
@@ -756,38 +450,17 @@
             "invisible",
             "-translate-y-2",
           );
-          if (activeDropdown.id === "pagination-popup") {
-            activeDropdown.classList.add("translate-y-2");
-          }
           activeDropdown = null;
           dropdownIcon.classList.remove("rotate-180");
         }
       });
 
+      // Navbar scroll effect
       const navbar = document.getElementById("main-navbar");
       window.addEventListener("scroll", () => {
-        if (window.scrollY > 10) {
-          navbar.classList.add("shadow-md");
-        } else {
-          navbar.classList.remove("shadow-md");
-        }
-      });
-
-      const searchInput = document.getElementById("search-input");
-      const clearSearchBtn = document.getElementById("clear-search");
-
-      searchInput.addEventListener("input", function () {
-        if (this.value.length > 0) {
-          clearSearchBtn.classList.remove("hidden");
-        } else {
-          clearSearchBtn.classList.add("hidden");
-        }
-      });
-
-      clearSearchBtn.addEventListener("click", function () {
-        searchInput.value = "";
-        clearSearchBtn.classList.add("hidden");
-        searchInput.focus();
+        window.scrollY > 10
+          ? navbar.classList.add("shadow-md")
+          : navbar.classList.remove("shadow-md");
       });
     </script>
   </body>

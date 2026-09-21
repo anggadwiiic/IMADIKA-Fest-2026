@@ -345,6 +345,347 @@ async function submitReport(type, formElement, errorBoxId, btnId) {
 }
 
 // ==========================================
+// 5. DAFTAR LAPORAN (PENCARIAN, FILTER, URUTAN, PAGINASI DINAMIS)
+// ==========================================
+async function setupDaftarLaporan() {
+  const gridContainer = document.getElementById("reports-grid");
+  if (!gridContainer) return; // Hanya jalankan di halaman daftar laporan
+
+  let state = {
+    search: "",
+    categoryId: "all",
+    type: "all",
+    dateFilter: "all", // "all", "today", "week", atau format tanggal "YYYY-MM-DD"
+    sortBy: "desc", // "desc" (terbaru), "asc" (terlama)
+    page: 1,
+    limit: 6,
+    totalData: 0,
+  };
+
+  const UI = {
+    searchInp: document.getElementById("search-input"),
+    clearSearchBtn: document.getElementById("clear-search"),
+    catContainer: document.getElementById("filter-kategori"),
+    labelCat: document.getElementById("label-kategori"),
+    labelJenis: document.getElementById("label-jenis"),
+    labelTanggal: document.getElementById("label-tanggal"),
+    labelUrutkan: document.getElementById("label-urutkan"),
+    btnHariIni: document.getElementById("btn-filter-hari-ini"),
+    btnMingguIni: document.getElementById("btn-filter-minggu-ini"),
+    inpTanggal: document.getElementById("input-filter-tanggal"),
+    btnReset: document.getElementById("btn-reset-filter"),
+    infoHasil: document.getElementById("info-hasil"),
+    countCurrent: document.getElementById("count-current"),
+    countTotal: document.getElementById("count-total"),
+    pagContainer: document.getElementById("pagination-container"),
+  };
+
+  // 1. Muat Opsi Kategori ke Dropdown
+  const loadKategori = async () => {
+    const { data } = await supabaseClient
+      .from("categories")
+      .select("*")
+      .eq("is_active", true);
+    let html = `<button data-value="all" class="filter-kat-opt w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-primary-dark">Semua Kategori</button>`;
+    if (data) {
+      data.forEach((cat) => {
+        html += `<button data-value="${cat.id}" class="filter-kat-opt w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-gray-50 text-text-primary">${cat.name}</button>`;
+      });
+    }
+    UI.catContainer.innerHTML = html;
+
+    // Pasang listener kategori
+    document.querySelectorAll(".filter-kat-opt").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.categoryId = btn.dataset.value;
+        state.page = 1;
+        UI.labelCat.innerText = btn.innerText;
+        document.querySelectorAll(".filter-kat-opt").forEach((b) => {
+          b.classList.remove("text-primary-dark");
+          b.classList.add("text-text-primary");
+        });
+        btn.classList.add("text-primary-dark");
+        if (activeDropdown) {
+          activeDropdown.classList.add("opacity-0", "invisible");
+          activeDropdown = null;
+        }
+        updateResetButton();
+        fetchData();
+      });
+    });
+  };
+
+  // 2. Fetch Data Utama
+  const fetchData = async () => {
+    gridContainer.innerHTML = `<div class="col-span-full text-center py-10"><p class="text-text-secondary">Memuat data...</p></div>`;
+
+    let query = supabaseClient
+      .from("reports")
+      .select(`*, categories(name), locations(name)`, { count: "exact" })
+      .eq("status", "active");
+
+    // Filter Search
+    if (state.search) query = query.ilike("item_name", `%${state.search}%`);
+
+    // Filter Kategori
+    if (state.categoryId !== "all")
+      query = query.eq("category_id", state.categoryId);
+
+    // Filter Jenis
+    if (state.type !== "all") query = query.eq("type", state.type);
+
+    // Filter Tanggal berdasarkan created_at
+    if (state.dateFilter !== "all") {
+      const today = new Date();
+      if (state.dateFilter === "today") {
+        query = query.gte(
+          "created_at",
+          today.toISOString().split("T")[0] + "T00:00:00Z",
+        );
+      } else if (state.dateFilter === "week") {
+        const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        query = query.gte("created_at", lastWeek.toISOString());
+      } else {
+        // Tanggal spesifik
+        query = query
+          .gte("created_at", state.dateFilter + "T00:00:00Z")
+          .lt("created_at", state.dateFilter + "T23:59:59Z");
+      }
+    }
+
+    // Urutkan
+    query = query.order("created_at", { ascending: state.sortBy === "asc" });
+
+    // Paginasi
+    const from = (state.page - 1) * state.limit;
+    const to = from + state.limit - 1;
+    query = query.range(from, to);
+
+    const { data, count, error } = await query;
+    if (error) {
+      gridContainer.innerHTML = `<div class="col-span-full text-center text-danger py-10">Gagal memuat data.</div>`;
+      return;
+    }
+
+    state.totalData = count || 0;
+    renderGrid(data);
+    renderPagination();
+  };
+
+  // 3. Render Card
+  const renderGrid = (data) => {
+    if (data.length === 0) {
+      gridContainer.innerHTML = `<div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4"><i data-feather="inbox" class="w-8 h-8 text-gray-400"></i></div>
+        <h3 class="text-lg font-bold text-text-primary mb-1">Belum ada laporan yang tersedia</h3>
+        <p class="text-sm text-text-secondary">Cobalah mengubah filter pencarian Anda.</p>
+      </div>`;
+      UI.infoHasil.classList.add("hidden");
+      if (typeof feather !== "undefined") feather.replace();
+      return;
+    }
+
+    gridContainer.innerHTML = data
+      .map((report) => {
+        const isLost = report.type === "lost";
+        const dateObj = new Date(report.event_at);
+        const formattedDate = dateObj.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+        const fallbackImg =
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
+
+        return `
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-md shadow-sm">
+          <div class="flex items-center gap-1.5 mb-3">
+            <span class="w-2 h-2 rounded-full ${isLost ? "bg-danger" : "bg-success"}"></span>
+            <span class="text-xs font-bold ${isLost ? "text-danger" : "text-success"} uppercase tracking-wider">${isLost ? "Barang Hilang" : "Barang Ditemukan"}</span>
+          </div>
+          <img src="${report.photo_url || fallbackImg}" alt="${report.item_name}" class="w-full h-44 object-cover rounded-xl mb-5 bg-surface" />
+          <h3 class="text-lg font-bold text-text-primary truncate mb-3">${report.item_name}</h3>
+          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2"><i data-feather="tag" class="w-3.5 h-3.5"></i> ${report.categories?.name || "Lainnya"}</div>
+          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2"><i data-feather="map-pin" class="w-3.5 h-3.5"></i> ${report.locations?.name || "Tidak diketahui"}</div>
+          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4"><i data-feather="calendar" class="w-3.5 h-3.5"></i> ${formattedDate}</div>
+          <p class="text-xs text-gray-500 line-clamp-2 mb-6 leading-relaxed">${report.description_public || "-"}</p>
+          <a href="detail-laporan.html?id=${report.id}" class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block">Lihat Detail</a>
+        </div>
+      `;
+      })
+      .join("");
+
+    UI.infoHasil.classList.remove("hidden");
+    UI.countCurrent.innerText = data.length;
+    UI.countTotal.innerText = state.totalData;
+    if (typeof feather !== "undefined") feather.replace();
+  };
+
+  // 4. Render Paginasi
+  const renderPagination = () => {
+    const totalPages = Math.ceil(state.totalData / state.limit);
+    if (totalPages <= 1) {
+      UI.pagContainer.classList.add("hidden");
+      return;
+    }
+
+    UI.pagContainer.classList.remove("hidden");
+    let html = `
+      <button onclick="changePage(${state.page - 1})" class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 ${state.page === 1 ? "text-gray-300 cursor-not-allowed" : "text-text-secondary hover:bg-surface"} transition" ${state.page === 1 ? "disabled" : ""}>
+        <i data-feather="chevron-left" class="w-4 h-4"></i>
+      </button>
+    `;
+
+    for (let i = 1; i <= totalPages; i++) {
+      html += `
+        <button onclick="changePage(${i})" class="w-10 h-10 flex items-center justify-center rounded-xl font-semibold transition ${i === state.page ? "bg-primary-dark text-white shadow-sm" : "text-text-secondary hover:bg-surface"}">
+          ${i}
+        </button>
+      `;
+    }
+
+    html += `
+      <button onclick="changePage(${state.page + 1})" class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 ${state.page === totalPages ? "text-gray-300 cursor-not-allowed" : "text-text-secondary hover:bg-surface"} transition" ${state.page === totalPages ? "disabled" : ""}>
+        <i data-feather="chevron-right" class="w-4 h-4"></i>
+      </button>
+    `;
+    UI.pagContainer.innerHTML = html;
+    if (typeof feather !== "undefined") feather.replace();
+  };
+
+  window.changePage = (newPage) => {
+    const totalPages = Math.ceil(state.totalData / state.limit);
+    if (newPage >= 1 && newPage <= totalPages) {
+      state.page = newPage;
+      fetchData();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // 5. Setup Listeners
+  let searchTimeout;
+  UI.searchInp.addEventListener("input", (e) => {
+    state.search = e.target.value;
+    state.page = 1;
+    UI.clearSearchBtn.classList.toggle("hidden", state.search.length === 0);
+    updateResetButton();
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(fetchData, 500); // Debounce 500ms
+  });
+
+  UI.clearSearchBtn.addEventListener("click", () => {
+    UI.searchInp.value = "";
+    state.search = "";
+    state.page = 1;
+    UI.clearSearchBtn.classList.add("hidden");
+    updateResetButton();
+    fetchData();
+  });
+
+  // Listener Jenis
+  document.querySelectorAll(".filter-jenis-opt").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.type = btn.dataset.value;
+      state.page = 1;
+      UI.labelJenis.innerText = btn.innerText;
+      document.querySelectorAll(".filter-jenis-opt").forEach((b) => {
+        b.classList.remove("text-primary-dark");
+        b.classList.add("text-text-primary");
+      });
+      btn.classList.add("text-primary-dark");
+      if (activeDropdown) {
+        activeDropdown.classList.add("opacity-0", "invisible");
+        activeDropdown = null;
+      }
+      updateResetButton();
+      fetchData();
+    });
+  });
+
+  // Listener Urutkan
+  document.querySelectorAll(".filter-urutkan-opt").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.sortBy = btn.dataset.value;
+      state.page = 1;
+      UI.labelUrutkan.innerText = btn.innerText;
+      document.querySelectorAll(".filter-urutkan-opt").forEach((b) => {
+        b.classList.remove("text-primary-dark");
+        b.classList.add("text-text-primary");
+      });
+      btn.classList.add("text-primary-dark");
+      if (activeDropdown) {
+        activeDropdown.classList.add("opacity-0", "invisible");
+        activeDropdown = null;
+      }
+      fetchData(); // Tidak perlu trigger reset button karena ini cuma urutan
+    });
+  });
+
+  // Listener Tanggal
+  const setTanggal = (val, label) => {
+    state.dateFilter = val;
+    state.page = 1;
+    UI.labelTanggal.innerText = label;
+    if (activeDropdown) {
+      activeDropdown.classList.add("opacity-0", "invisible");
+      activeDropdown = null;
+    }
+    updateResetButton();
+    fetchData();
+  };
+
+  UI.btnHariIni.addEventListener("click", () =>
+    setTanggal("today", "Hari ini"),
+  );
+  UI.btnMingguIni.addEventListener("click", () =>
+    setTanggal("week", "Minggu ini"),
+  );
+  UI.inpTanggal.addEventListener("change", (e) => {
+    if (e.target.value) setTanggal(e.target.value, e.target.value);
+  });
+
+  // Tombol Reset
+  const updateResetButton = () => {
+    const isFiltered =
+      state.search ||
+      state.categoryId !== "all" ||
+      state.type !== "all" ||
+      state.dateFilter !== "all";
+    UI.btnReset.classList.toggle("hidden", !isFiltered);
+  };
+
+  UI.btnReset.addEventListener("click", () => {
+    state = {
+      ...state,
+      search: "",
+      categoryId: "all",
+      type: "all",
+      dateFilter: "all",
+      page: 1,
+    };
+    UI.searchInp.value = "";
+    UI.clearSearchBtn.classList.add("hidden");
+    UI.labelCat.innerText = "Semua Kategori";
+    UI.labelJenis.innerText = "Semua Jenis";
+    UI.labelTanggal.innerText = "Semua Waktu";
+    UI.inpTanggal.value = "";
+    document
+      .querySelectorAll(".filter-kat-opt, .filter-jenis-opt")
+      .forEach((b) => {
+        b.dataset.value === "all"
+          ? b.classList.add("text-primary-dark")
+          : b.classList.remove("text-primary-dark");
+      });
+    updateResetButton();
+    fetchData();
+  });
+
+  // Init
+  await loadKategori();
+  fetchData();
+}
+
+// ==========================================
 // INISIALISASI
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -352,4 +693,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAuthForms();
   loadMasterData();
   setupReportForms();
+  setupDaftarLaporan(); // daftar laporan
 });
