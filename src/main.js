@@ -221,6 +221,46 @@ function setupReportForms() {
   const formHilang = document.getElementById("form-lapor-hilang");
   const formTemuan = document.getElementById("form-lapor-temuan");
 
+  // 1. Batasi Input Tanggal (Mencegah input tahun 202020 atau masa depan)
+  const dateInput = document.getElementById("lap-tanggal");
+  if (dateInput) {
+    const today = new Date().toISOString().split("T")[0];
+    dateInput.max = today; // Maksimal hari ini
+    dateInput.min = "2024-01-01"; // Minimal tahun 2024
+  }
+
+  // 2. Logika Preview Foto & Hapus Foto
+  const fileInput = document.getElementById("lap-foto");
+  const previewContainer = document.getElementById("foto-preview-container");
+  const previewLink = document.getElementById("foto-preview-link");
+  const btnHapusFoto = document.getElementById("btn-hapus-foto");
+
+  if (fileInput && previewContainer) {
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        // Buat URL sementara untuk preview di tab baru
+        const fileURL = URL.createObjectURL(file);
+        previewLink.href = fileURL;
+        previewLink.textContent = file.name;
+
+        previewContainer.classList.remove("hidden");
+        previewContainer.classList.add("flex");
+        if (typeof feather !== "undefined") feather.replace();
+      } else {
+        previewContainer.classList.add("hidden");
+        previewContainer.classList.remove("flex");
+      }
+    });
+
+    btnHapusFoto.addEventListener("click", function () {
+      fileInput.value = ""; // Kosongkan input file
+      previewContainer.classList.add("hidden");
+      previewContainer.classList.remove("flex");
+    });
+  }
+
+  // 3. Event Listener Submit
   if (formHilang) {
     formHilang.addEventListener("submit", async (e) => {
       e.preventDefault();
