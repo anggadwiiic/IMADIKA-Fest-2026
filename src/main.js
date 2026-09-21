@@ -1000,6 +1000,82 @@ async function setupRiwayatLaporan() {
 }
 
 // ==========================================
+// 8. LOGIKA BERANDA (INDEX.HTML)
+// ==========================================
+async function loadRecentReports() {
+  const lostGrid = document.getElementById("recent-lost-grid");
+  const foundGrid = document.getElementById("recent-found-grid");
+
+  if (!lostGrid && !foundGrid) return; // Hanya jalan jika elemennya ada (di index.html)
+
+  const renderCards = (data, container, isLost) => {
+    if (!data || data.length === 0) {
+      container.innerHTML = `<div class="col-span-full text-center py-8 text-gray-500">Belum ada laporan terbaru.</div>`;
+      return;
+    }
+
+    const fallbackImg =
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
+
+    container.innerHTML = data
+      .map((report) => {
+        const dateObj = new Date(report.event_at);
+        const formattedDate = dateObj.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+
+        return `
+        <div class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-md shadow-sm">
+          <div class="flex items-center gap-1.5 mb-3">
+            <span class="w-2 h-2 rounded-full ${isLost ? "bg-danger" : "bg-success"}"></span>
+            <span class="text-xs font-bold ${isLost ? "text-danger" : "text-success"} uppercase tracking-wider">${isLost ? "Barang Hilang" : "Barang Ditemukan"}</span>
+          </div>
+          <img src="${report.photo_url || fallbackImg}" alt="${report.item_name}" class="w-full h-44 object-cover rounded-xl mb-5 bg-surface" />
+          <h3 class="text-lg font-bold text-text-primary truncate mb-3">${report.item_name}</h3>
+          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2"><i data-feather="tag" class="w-3.5 h-3.5"></i> ${report.categories?.name || "Lainnya"}</div>
+          <div class="flex items-center gap-2 text-xs text-gray-500 mb-2"><i data-feather="map-pin" class="w-3.5 h-3.5"></i> ${report.locations?.name || "Tidak diketahui"}</div>
+          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4"><i data-feather="calendar" class="w-3.5 h-3.5"></i> ${formattedDate}</div>
+          <a href="detail-laporan.html?id=${report.id}" class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block">Lihat Detail</a>
+        </div>
+      `;
+      })
+      .join("");
+  };
+
+  try {
+    // Ambil 4 Laporan Kehilangan Terbaru
+    if (lostGrid) {
+      const { data: lostData } = await supabaseClient
+        .from("reports")
+        .select("*, categories(name), locations(name)")
+        .eq("type", "lost")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(4);
+      renderCards(lostData, lostGrid, true);
+    }
+
+    // Ambil 4 Laporan Penemuan Terbaru
+    if (foundGrid) {
+      const { data: foundData } = await supabaseClient
+        .from("reports")
+        .select("*, categories(name), locations(name)")
+        .eq("type", "found")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(4);
+      renderCards(foundData, foundGrid, false);
+    }
+
+    if (typeof feather !== "undefined") feather.replace();
+  } catch (err) {
+    console.error("Gagal memuat laporan terbaru:", err);
+  }
+}
+
+// ==========================================
 // INISIALISASI
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -1010,4 +1086,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupDaftarLaporan();
   setupProfilPage();
   setupRiwayatLaporan();
+  loadRecentReports();
 });
