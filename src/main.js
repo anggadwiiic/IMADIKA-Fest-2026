@@ -948,12 +948,12 @@ async function setupDetailLaporan() {
     const actionPanel = document.getElementById("detail-action-panel");
     let actionHtml = "";
 
+    // PERBAIKAN UX: Warna merah text-danger agar kontras
     const deleteBtnHtml =
       isMyReport && report.status === "active"
-        ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-text-secondary hover:text-danger hover:bg-danger-soft font-semibold py-2.5 px-4 rounded-xl transition text-[13px]"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
+        ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-danger bg-danger-soft/30 hover:bg-danger-soft font-semibold py-3 px-4 rounded-xl transition text-[13px] border border-red-100"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
         : "";
 
-    /* KEMBALI KE UI AWAL YANG BERSIH DAN KONSISTEN DENGAN INDEX.HTML */
     if (!currentUserId) {
       actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-left border border-gray-200"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
     } else if (activeClaim && activeClaim.status === "completed") {
