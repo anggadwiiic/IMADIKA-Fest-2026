@@ -1215,17 +1215,13 @@ async function setupDetailLaporan() {
         </div>`;
     } else if (activeClaim && activeClaim.status === "approved") {
       // Jika Klaim Disetujui (Sedang Proses Pengembalian)
-      // Tentukan apakah user ini berhak melihat kontak
       let contactProfile = null;
       let contactRole = "";
 
       if (currentUserId === activeClaim.found_report?.reporter_id) {
-        // Yang buka adalah Penemu, tampilkan kontak Pemilik
         contactProfile = activeClaim.claimant;
         contactRole = "Pemilik Barang";
       } else if (currentUserId === activeClaim.claimant_id) {
-        // Yang buka adalah Pemilik, tampilkan kontak Penemu
-        // Kita harus fetch profil penemu
         const { data: finderProf } = await supabaseClient
           .from("profiles")
           .select("full_name, whatsapp")
@@ -1239,33 +1235,32 @@ async function setupDetailLaporan() {
         const waLink = contactProfile.whatsapp
           ? `https://wa.me/${contactProfile.whatsapp}`
           : "#";
+
+        // PERBAIKAN UI: Tombol WhatsApp yang hilang sudah diperbaiki dengan styling inline khusus warna #25D366
         actionHtml = `
           <div class="sticky top-24 bg-primary-soft/30 border border-primary-soft rounded-[24px] p-8 sm:p-10 text-left">
             <h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2>
             <p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p>
             
-            <div class="bg-white p-4 rounded-xl border border-gray-200 mb-6">
+            <div class="bg-white p-5 rounded-xl border border-gray-200 mb-6 shadow-sm">
               <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div>
-              <div class="font-semibold text-text-primary mb-3">${contactProfile.full_name || "Tidak ada nama"}</div>
-              <a href="${waLink}" target="_blank" class="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
-                <i data-feather="message-circle" class="w-4 h-4"></i> Hubungi via WhatsApp
+              <div class="font-semibold text-text-primary mb-4 text-[16px]">${contactProfile.full_name || "Tidak ada nama"}</div>
+              <a href="${waLink}" target="_blank" style="background-color: #25D366;" class="flex items-center justify-center gap-2 w-full text-white font-semibold py-3 px-4 rounded-xl transition-opacity hover:opacity-90 text-[14px] shadow-sm">
+                <i data-feather="message-circle" class="w-4 h-4"></i> Hubungi Sekarang
               </a>
             </div>
             
-            <p class="text-[12px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p>
+            <p class="text-[13px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p>
             <button onclick="showModal('modal-selesai')" class="w-full bg-surface border border-gray-200 hover:bg-gray-200 text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">
               Tandai Selesai
             </button>
           </div>`;
 
-        // Siapkan event listener untuk tombol Konfirmasi Selesai di Modal
         setTimeout(() => {
           const btnSelesai = document.getElementById("btn-confirm-selesai");
           if (btnSelesai) {
             btnSelesai.onclick = async () => {
               hideModal("modal-selesai");
-
-              // FIX UX: Otomatis scroll ke atas
               window.scrollTo({ top: 0, behavior: "smooth" });
 
               notifBox.classList.remove("hidden");
@@ -1274,12 +1269,10 @@ async function setupDetailLaporan() {
               notifBox.innerText = "Memproses penutupan laporan...";
 
               try {
-                // 1. Update status claim
                 await supabaseClient
                   .from("claims")
                   .update({ status: "completed" })
                   .eq("id", activeClaim.id);
-                // 2. Update status report
                 await supabaseClient
                   .from("reports")
                   .update({ status: "completed" })
@@ -1299,7 +1292,6 @@ async function setupDetailLaporan() {
           }
         }, 500);
       } else {
-        // Jika orang lain yang melihat barang yang sudah diklaim
         actionHtml = `
           <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-center">
             <i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i>
@@ -1494,8 +1486,7 @@ async function setupAjukanKlaim() {
         if (insertErr) throw insertErr;
 
         // Feedback Sukses (Tanpa Alert)
-        notifBox.innerText =
-          "Klaim berhasil diajukan! Mengarahkan ke Riwayat...";
+        notifBox.innerText = "Klaim berhasil diajukan...";
         notifBox.className =
           "mb-6 p-4 rounded-xl text-sm font-semibold border bg-success-soft text-on-success-soft border-green-200 block";
 
