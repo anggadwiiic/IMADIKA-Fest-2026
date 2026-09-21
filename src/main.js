@@ -1264,6 +1264,10 @@ async function setupDetailLaporan() {
           if (btnSelesai) {
             btnSelesai.onclick = async () => {
               hideModal("modal-selesai");
+
+              // FIX UX: Otomatis scroll ke atas
+              window.scrollTo({ top: 0, behavior: "smooth" });
+
               notifBox.classList.remove("hidden");
               notifBox.className =
                 "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-info-soft text-on-info-soft border-blue-200";
@@ -1617,6 +1621,9 @@ async function setupTinjauKlaim() {
       if (typeof hideModal === "function")
         hideModal(newStatus === "approved" ? "modal-setuju" : "modal-tolak");
 
+      // FIX UX: Otomatis scroll ke atas agar notifikasi terlihat
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
       // Munculkan notifikasi loading
       notifBox.classList.remove("hidden");
       notifBox.className =
@@ -1644,7 +1651,8 @@ async function setupTinjauKlaim() {
       } catch (err) {
         notifBox.className =
           "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
-        notifBox.innerText = "Gagal memproses klaim: " + err.message;
+        notifBox.innerText =
+          "Gagal memproses klaim (Cek izin RLS Supabase!): " + err.message;
       }
     };
 
