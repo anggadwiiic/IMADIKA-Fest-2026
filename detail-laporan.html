@@ -7,20 +7,14 @@
     <link href="./output.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <style>
-      /* Gradient Background Lembut Khas Glassmorphism */
-      body {
-        background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
-      }
-    </style>
   </head>
   <body
-    class="text-text-primary font-sans antialiased min-h-screen flex flex-col"
+    class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
   >
-    <!-- Navbar Glassmorphism -->
+    <!-- Navbar (Disinkronkan dengan index.html) -->
     <nav
       id="main-navbar"
-      class="bg-white/40 backdrop-blur-md border-b border-white/50 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-all duration-300 shadow-sm"
+      class="h-[80px] px-6 lg:px-12 bg-background border-b border-gray-100 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
     >
       <a
         href="index.html"
@@ -28,7 +22,7 @@
         >FOUNDEX</a
       >
       <div
-        class="hidden lg:flex gap-10 text-sm font-medium text-gray-700 items-center h-full"
+        class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
       >
         <a
           href="index.html"
@@ -49,16 +43,16 @@
           </button>
           <div
             id="dropdown-menu"
-            class="absolute top-full left-0 mt-1 w-48 bg-white/80 backdrop-blur-xl border border-white/50 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
+            class="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
           >
             <a
               href="lapor-hilang.html"
-              class="block px-5 py-3 text-text-primary font-medium hover:bg-white/50 transition"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
               >Kehilangan Barang</a
             >
             <a
               href="lapor-temuan.html"
-              class="block px-5 py-3 text-text-primary font-medium hover:bg-white/50 transition"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
               >Menemukan Barang</a
             >
           </div>
@@ -75,7 +69,7 @@
         >
       </div>
       <div class="hidden lg:flex items-center gap-4" id="navbar-auth"></div>
-      <button class="lg:hidden text-gray-700 focus:outline-none">
+      <button class="lg:hidden text-gray-600 focus:outline-none">
         <i data-feather="menu" class="w-6 h-6"></i>
       </button>
     </nav>
@@ -84,7 +78,7 @@
     <main class="max-w-[1200px] mx-auto px-6 lg:px-12 py-10 flex-grow w-full">
       <a
         href="javascript:history.back()"
-        class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-primary-dark transition mb-8"
+        class="inline-flex items-center gap-1.5 text-sm font-semibold text-text-secondary hover:text-primary-dark transition mb-8"
       >
         <i data-feather="arrow-left" class="w-4 h-4"></i> Kembali
       </a>
@@ -92,134 +86,107 @@
       <!-- Snackbar Notifikasi -->
       <div
         id="detail-notif"
-        class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border shadow-sm backdrop-blur-md"
+        class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border"
       ></div>
-
-      <!-- Indikator Loading -->
       <div id="detail-loading" class="flex justify-center py-20">
-        <div
-          class="bg-white/50 backdrop-blur-md px-6 py-3 rounded-full border border-white/50 shadow-sm text-gray-600 font-medium"
-        >
-          Memuat data laporan...
-        </div>
+        <p class="text-text-secondary">Memuat data laporan...</p>
       </div>
 
       <div
         id="detail-content"
-        class="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12 hidden"
+        class="grid grid-cols-1 lg:grid-cols-3 gap-12 hidden"
       >
-        <!-- KOLOM KIRI: INFO BARANG (Glassmorphism Card) -->
+        <!-- KOLOM KIRI: INFO BARANG -->
         <div class="lg:col-span-2">
           <div
-            class="bg-white/60 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] p-6 sm:p-10"
+            class="w-full h-[300px] sm:h-[400px] rounded-[24px] overflow-hidden bg-surface mb-8 border border-gray-200"
           >
-            <!-- Gambar Utama -->
+            <img
+              id="detail-foto"
+              src=""
+              alt="Foto Barang"
+              class="w-full h-full object-cover"
+            />
+          </div>
+
+          <div class="mb-10">
             <div
-              class="w-full h-[300px] sm:h-[400px] rounded-[16px] overflow-hidden bg-white/50 mb-8 border border-white/40"
-            >
-              <img
-                id="detail-foto"
-                src=""
-                alt="Foto Barang"
-                class="w-full h-full object-cover"
-              />
-            </div>
+              class="flex items-center gap-2.5 mb-3"
+              id="detail-badges"
+            ></div>
+            <h1
+              id="detail-nama"
+              class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight"
+            ></h1>
+          </div>
 
-            <!-- Header & Badge Status -->
-            <div class="mb-10">
+          <div class="space-y-10 max-w-2xl">
+            <div>
+              <p
+                id="detail-deskripsi"
+                class="text-[16px] text-text-secondary leading-relaxed"
+              ></p>
+            </div>
+            <div class="space-y-4 pt-4 border-t border-gray-100">
               <div
-                class="flex items-center gap-2.5 mb-3"
-                id="detail-badges"
-              ></div>
-              <h1
-                id="detail-nama"
-                class="text-[32px] font-bold text-gray-900 leading-[1.2] tracking-tight"
-              ></h1>
+                class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-8"
+              >
+                <span class="text-sm text-text-secondary w-32 shrink-0"
+                  >Kategori</span
+                ><span
+                  id="detail-kategori"
+                  class="text-[16px] font-medium text-text-primary"
+                ></span>
+              </div>
+              <div
+                class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-8"
+              >
+                <span class="text-sm text-text-secondary w-32 shrink-0"
+                  >Pelapor</span
+                ><span
+                  id="detail-pelapor"
+                  class="text-[16px] font-medium text-text-primary"
+                ></span>
+              </div>
+              <div
+                class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-8"
+              >
+                <span class="text-sm text-text-secondary w-32 shrink-0 mt-0.5"
+                  >Waktu Kejadian</span
+                >
+                <div>
+                  <span
+                    id="detail-waktu"
+                    class="text-[16px] font-medium text-text-primary block"
+                  ></span>
+                </div>
+              </div>
+              <div
+                class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-8"
+              >
+                <span class="text-sm text-text-secondary w-32 shrink-0 mt-0.5"
+                  >Lokasi</span
+                >
+                <div>
+                  <span
+                    id="detail-lokasi"
+                    class="text-[16px] font-medium text-text-primary block mb-0.5"
+                  ></span
+                  ><span
+                    id="detail-lokasi-detail"
+                    class="text-[15px] text-text-secondary"
+                  ></span>
+                </div>
+              </div>
             </div>
-
-            <!-- Detail Vertikal -->
-            <div class="space-y-8 max-w-2xl">
-              <div>
-                <p
-                  id="detail-deskripsi"
-                  class="text-[16px] text-gray-700 leading-relaxed"
-                ></p>
-              </div>
-
-              <!-- List Informasi -->
-              <div class="space-y-4 pt-6 border-t border-gray-200/50">
-                <div
-                  class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-8"
+            <div class="pt-6">
+              <p class="text-[13px] text-gray-400 flex items-start gap-2">
+                <i data-feather="lock" class="w-4 h-4 shrink-0 mt-0.5"></i
+                ><span
+                  >Informasi privasi terjaga. Data ciri khusus tidak ditampilkan
+                  secara publik demi keamanan klaim.</span
                 >
-                  <span class="text-sm text-gray-500 font-medium w-32 shrink-0"
-                    >Kategori</span
-                  >
-                  <span
-                    id="detail-kategori"
-                    class="text-[16px] font-semibold text-gray-900"
-                  ></span>
-                </div>
-                <div
-                  class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-8"
-                >
-                  <span class="text-sm text-gray-500 font-medium w-32 shrink-0"
-                    >Pelapor</span
-                  >
-                  <span
-                    id="detail-pelapor"
-                    class="text-[16px] font-semibold text-gray-900"
-                  ></span>
-                </div>
-                <div
-                  class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-8"
-                >
-                  <span
-                    class="text-sm text-gray-500 font-medium w-32 shrink-0 mt-0.5"
-                    >Waktu Kejadian</span
-                  >
-                  <div>
-                    <span
-                      id="detail-waktu"
-                      class="text-[16px] font-semibold text-gray-900 block"
-                    ></span>
-                  </div>
-                </div>
-                <div
-                  class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-8"
-                >
-                  <span
-                    class="text-sm text-gray-500 font-medium w-32 shrink-0 mt-0.5"
-                    >Lokasi</span
-                  >
-                  <div>
-                    <span
-                      id="detail-lokasi"
-                      class="text-[16px] font-semibold text-gray-900 block mb-0.5"
-                    ></span>
-                    <span
-                      id="detail-lokasi-detail"
-                      class="text-[15px] text-gray-600"
-                    ></span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Helper Privasi -->
-              <div class="pt-6">
-                <div
-                  class="bg-white/40 border border-white/50 rounded-xl p-4 flex items-start gap-3"
-                >
-                  <i
-                    data-feather="lock"
-                    class="w-5 h-5 text-gray-500 shrink-0 mt-0.5"
-                  ></i>
-                  <p class="text-[13px] text-gray-600 leading-relaxed">
-                    Informasi privasi terjaga. Data ciri khusus tidak
-                    ditampilkan secara publik demi keamanan verifikasi
-                    kepemilikan.
-                  </p>
-                </div>
-              </div>
+              </p>
             </div>
           </div>
         </div>
@@ -229,37 +196,39 @@
       </div>
     </main>
 
-    <!-- Modal Konfirmasi Selesai (Glassmorphism) -->
+    <!-- Modal Konfirmasi Selesai -->
     <div
       id="modal-selesai"
-      class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
     >
       <div
-        class="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-[24px] p-8 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300"
+        class="bg-white rounded-[24px] p-8 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300"
         id="modal-selesai-content"
       >
         <div
-          class="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-5"
+          class="w-12 h-12 rounded-full bg-success-soft text-success flex items-center justify-center mb-5"
         >
           <i data-feather="check-circle" class="w-6 h-6"></i>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 mb-2">Tandai Selesai?</h3>
+        <h3 class="text-xl font-bold text-text-primary mb-2">
+          Tandai Selesai?
+        </h3>
         <p
           id="modal-selesai-desc"
-          class="text-sm text-gray-600 leading-relaxed mb-8"
+          class="text-sm text-text-secondary leading-relaxed mb-8"
         >
           Apakah Anda yakin proses serah terima sudah selesai?
         </p>
         <div class="flex gap-3">
           <button
             onclick="hideModal('modal-selesai')"
-            class="flex-1 bg-white/60 border border-white hover:bg-white text-gray-700 font-semibold py-2.5 rounded-xl transition text-sm focus:outline-none shadow-sm"
+            class="flex-1 bg-surface text-text-primary hover:bg-gray-200 font-semibold py-2.5 rounded-xl transition text-sm focus:outline-none"
           >
             Belum
           </button>
           <button
             id="btn-confirm-selesai"
-            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md focus:outline-none"
+            class="flex-1 bg-success hover:bg-green-600 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-sm focus:outline-none"
           >
             Ya, Selesai
           </button>
@@ -267,35 +236,35 @@
       </div>
     </div>
 
-    <!-- Modal Konfirmasi Hapus (Glassmorphism) -->
+    <!-- Modal Konfirmasi Hapus -->
     <div
       id="modal-hapus"
-      class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
     >
       <div
-        class="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-[24px] p-8 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300"
+        class="bg-white rounded-[24px] p-8 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300"
         id="modal-hapus-content"
       >
         <div
-          class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mb-5"
+          class="w-12 h-12 rounded-full bg-danger-soft text-danger flex items-center justify-center mb-5"
         >
           <i data-feather="trash-2" class="w-6 h-6"></i>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 mb-2">Hapus Laporan?</h3>
-        <p class="text-sm text-gray-600 leading-relaxed mb-8">
+        <h3 class="text-xl font-bold text-text-primary mb-2">Hapus Laporan?</h3>
+        <p class="text-sm text-text-secondary leading-relaxed mb-8">
           Laporan ini akan dihapus secara permanen dari sistem. Tindakan ini
           tidak dapat dibatalkan.
         </p>
         <div class="flex gap-3">
           <button
             onclick="hideModal('modal-hapus')"
-            class="flex-1 bg-white/60 border border-white hover:bg-white text-gray-700 font-semibold py-2.5 rounded-xl transition text-sm focus:outline-none shadow-sm"
+            class="flex-1 bg-surface text-text-primary hover:bg-gray-200 font-semibold py-2.5 rounded-xl transition text-sm focus:outline-none"
           >
             Batal
           </button>
           <button
             id="btn-confirm-hapus"
-            class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-md focus:outline-none"
+            class="flex-1 bg-danger hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-sm focus:outline-none"
           >
             Ya, Hapus
           </button>
@@ -303,7 +272,7 @@
       </div>
     </div>
 
-    <!-- Footer Standar -->
+    <!-- Footer -->
     <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
@@ -331,6 +300,12 @@
     <script src="./src/main.js"></script>
     <script>
       feather.replace();
+      const navbar = document.getElementById("main-navbar");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 10) navbar.classList.add("shadow-md");
+        else navbar.classList.remove("shadow-md");
+      });
+
       const dropdownBtn = document.getElementById("dropdown-btn");
       const dropdownMenu = document.getElementById("dropdown-menu");
       const dropdownIcon = document.getElementById("dropdown-icon");

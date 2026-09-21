@@ -950,14 +950,14 @@ async function setupDetailLaporan() {
 
     const deleteBtnHtml =
       isMyReport && report.status === "active"
-        ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-gray-500 hover:text-red-600 hover:bg-white/50 font-semibold py-2.5 px-4 rounded-xl transition text-[13px]"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
+        ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-text-secondary hover:text-danger hover:bg-danger-soft font-semibold py-2.5 px-4 rounded-xl transition text-[13px]"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
         : "";
 
-    /* GLASSSMORPHISM UI INJECTION */
+    /* KEMBALI KE UI AWAL YANG BERSIH DAN KONSISTEN DENGAN INDEX.HTML */
     if (!currentUserId) {
-      actionHtml = `<div class="sticky top-24 bg-white/60 backdrop-blur-xl rounded-[24px] p-8 sm:p-10 text-left border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"><div class="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm border border-white"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-gray-900 mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-gray-600 mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px] shadow-md">Masuk Sekarang</a></div>`;
+      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-left border border-gray-200"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
     } else if (activeClaim && activeClaim.status === "completed") {
-      actionHtml = `<div class="sticky top-24 bg-green-50/70 backdrop-blur-xl border border-white/60 rounded-[24px] p-8 sm:p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]"><i data-feather="check-circle" class="w-12 h-12 text-green-600 mx-auto mb-4"></i><h2 class="text-[20px] font-bold text-gray-900 mb-2">Telah Dikembalikan</h2><p class="text-[14px] text-gray-600 leading-relaxed">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p></div>`;
+      actionHtml = `<div class="sticky top-24 bg-success-soft/30 border border-success-soft rounded-[24px] p-8 sm:p-10 text-center"><i data-feather="check-circle" class="w-10 h-10 text-success mx-auto mb-4"></i><h2 class="text-[20px] font-bold text-text-primary mb-2">Telah Dikembalikan</h2><p class="text-[14px] text-text-secondary">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p></div>`;
     } else if (activeClaim && activeClaim.status === "approved") {
       let contactProfile = null,
         contactRole = "",
@@ -984,9 +984,9 @@ async function setupDetailLaporan() {
         const waNumber = contactProfile.whatsapp;
         const waAction = waNumber
           ? `href="https://wa.me/${waNumber}" target="_blank"`
-          : `href="#" onclick="document.getElementById('detail-notif').classList.remove('hidden'); document.getElementById('detail-notif').className='mb-6 p-4 rounded-xl text-sm font-semibold border block bg-white/80 backdrop-blur-md text-yellow-700 border-yellow-200 shadow-sm'; document.getElementById('detail-notif').innerText='Peringatan: Pengguna ini belum mencantumkan nomor WhatsApp.'; return false;"`;
+          : `href="#" onclick="document.getElementById('detail-notif').classList.remove('hidden'); document.getElementById('detail-notif').className='mb-6 p-4 rounded-xl text-sm font-semibold border block bg-warning-soft text-on-warning-soft border-yellow-200'; document.getElementById('detail-notif').innerText='Peringatan: Pengguna ini belum mencantumkan nomor WhatsApp.'; return false;"`;
 
-        actionHtml = `<div class="sticky top-24 bg-white/60 backdrop-blur-xl border border-white/60 rounded-[24px] p-8 sm:p-10 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)]"><h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2><p class="text-[14px] text-gray-600 mb-6">Silakan hubungi pihak terkait untuk serah terima.</p><div class="bg-white/70 backdrop-blur-md p-5 rounded-xl border border-white/50 mb-6 shadow-sm"><div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div><div class="font-semibold text-gray-900 mb-4 text-[16px]">${contactProfile.full_name || "Tidak ada nama"}</div><a ${waAction} style="background-color: #25D366;" class="flex items-center justify-center gap-2 w-full text-white font-semibold py-3 px-4 rounded-xl transition-opacity hover:opacity-90 text-[14px] shadow-md">${waSvg} Hubungi Sekarang</a></div><p class="text-[13px] text-gray-500 mb-3 text-center">Apakah serah terima sudah selesai?</p><button onclick="openModalSelesai('${modalDescText}')" class="w-full bg-white/80 border border-white hover:bg-white text-gray-800 font-semibold py-3 rounded-xl transition text-[14px] shadow-sm">Tandai Selesai</button></div>`;
+        actionHtml = `<div class="sticky top-24 bg-primary-soft/30 border border-primary-soft rounded-[24px] p-8 sm:p-10 text-left"><h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2><p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p><div class="bg-white p-5 rounded-xl border border-gray-200 mb-6 shadow-sm"><div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div><div class="font-semibold text-text-primary mb-4 text-[16px]">${contactProfile.full_name || "Tidak ada nama"}</div><a ${waAction} style="background-color: #25D366;" class="flex items-center justify-center gap-2 w-full text-white font-semibold py-3 px-4 rounded-xl transition-opacity hover:opacity-90 text-[14px] shadow-sm">${waSvg} Hubungi Sekarang</a></div><p class="text-[13px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p><button onclick="openModalSelesai('${modalDescText}')" class="w-full bg-surface border border-gray-200 hover:bg-gray-200 text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">Tandai Selesai</button></div>`;
 
         setTimeout(() => {
           const btnSelesai = document.getElementById("btn-confirm-selesai");
@@ -996,7 +996,7 @@ async function setupDetailLaporan() {
               window.scrollTo({ top: 0, behavior: "smooth" });
               notifBox.classList.remove("hidden");
               notifBox.className =
-                "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-white/80 backdrop-blur-md text-blue-700 border-blue-200 shadow-sm";
+                "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-info-soft text-on-info-soft border-blue-200";
               notifBox.innerText = "Memproses penutupan laporan...";
               try {
                 await supabaseClient
@@ -1014,20 +1014,20 @@ async function setupDetailLaporan() {
                     .update({ status: "completed" })
                     .eq("id", activeClaim.lost_report_id);
                 notifBox.className =
-                  "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-white/80 backdrop-blur-md text-green-700 border-green-200 shadow-sm";
+                  "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
                 notifBox.innerText =
                   "Serah terima berhasil. Seluruh laporan ditutup! Memuat ulang...";
                 setTimeout(() => window.location.reload(), 2500);
               } catch (err) {
                 notifBox.className =
-                  "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-white/80 backdrop-blur-md text-red-700 border-red-200 shadow-sm";
+                  "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
                 notifBox.innerText = "Gagal menutup laporan: " + err.message;
               }
             };
           }
         }, 500);
       } else {
-        actionHtml = `<div class="sticky top-24 bg-white/60 backdrop-blur-xl rounded-[24px] p-8 sm:p-10 border border-white/60 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]"><i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i><h2 class="text-lg font-bold text-gray-900 mb-2">Laporan Dikunci</h2><p class="text-sm text-gray-600">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p></div>`;
+        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-center"><i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Laporan Dikunci</h2><p class="text-sm text-text-secondary">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p></div>`;
       }
     } else if (isLost && isMyReport) {
       const { data: matches } = await supabaseClient
@@ -1040,17 +1040,20 @@ async function setupDetailLaporan() {
         let matchItemsHtml = matches
           .map(
             (m) =>
-              `<div class="bg-white/70 backdrop-blur-md border border-white/50 p-4 rounded-xl mb-4 text-left shadow-sm"><div class="font-bold text-gray-900 text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div><div class="text-xs text-primary-dark font-medium mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div><a href="ajukan-claim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-white/80 font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a></div>`,
+              `<div class="bg-white border border-gray-200 p-4 rounded-xl mb-4 text-left"><div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div><div class="text-xs text-text-secondary mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div><a href="ajukan-claim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a></div>`,
           )
           .join("");
-        actionHtml = `<div class="sticky top-24 bg-white/60 backdrop-blur-xl border border-white/60 rounded-[24px] p-8 sm:p-10 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)]"><h2 class="text-[20px] font-bold text-gray-900 mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-primary-dark"></i> Potensi Kecocokan</h2><p class="text-[14px] text-gray-600 mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>${matchItemsHtml}${deleteBtnHtml}</div>`;
+        actionHtml = `<div class="sticky top-24 bg-info-soft/30 border border-info-soft rounded-[24px] p-8 sm:p-10 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2><p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>${matchItemsHtml}${deleteBtnHtml}</div>`;
       } else {
-        actionHtml = `<div class="sticky top-24 bg-white/60 backdrop-blur-xl rounded-[24px] p-8 sm:p-10 border border-white/60 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)]"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-gray-900 mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-gray-600">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p>${deleteBtnHtml}</div>`;
+        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p>${deleteBtnHtml}</div>`;
       }
     } else if (!isLost && !isMyReport) {
-      actionHtml = `<div class="sticky top-24 bg-white/60 backdrop-blur-xl rounded-[24px] p-8 sm:p-10 border border-white/60 text-left shadow-[0_8px_30px_rgb(0,0,0,0.04)]"><h2 class="text-[20px] font-bold text-gray-900 mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-gray-600 mb-8">Ajukan klaim kepemilikan dengan memberikan ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-md">Ajukan Klaim Sekarang</a></div>`;
+      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a></div>`;
     } else {
-      actionHtml = `<div class="sticky top-24 bg-white/60 backdrop-blur-xl rounded-[24px] p-8 border border-white/60 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">${deleteBtnHtml}</div>`;
+      actionHtml = `<div class="hidden"></div>`;
+      document
+        .querySelector(".lg\\:col-span-2")
+        .classList.replace("lg:col-span-2", "lg:col-span-3");
     }
 
     actionPanel.innerHTML = actionHtml;
@@ -1067,7 +1070,7 @@ async function setupDetailLaporan() {
           window.scrollTo({ top: 0, behavior: "smooth" });
           notifBox.classList.remove("hidden");
           notifBox.className =
-            "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-white/80 backdrop-blur-md text-blue-700 border-blue-200 shadow-sm";
+            "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-info-soft text-on-info-soft border-blue-200";
           notifBox.innerText = "Menghapus laporan...";
           try {
             const { error: delErr } = await supabaseClient
@@ -1076,13 +1079,13 @@ async function setupDetailLaporan() {
               .eq("id", reportId);
             if (delErr) throw delErr;
             notifBox.className =
-              "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-white/80 backdrop-blur-md text-green-700 border-green-200 shadow-sm";
+              "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
             notifBox.innerText =
               "Laporan berhasil dihapus. Mengarahkan ke riwayat...";
             setTimeout(() => (window.location.href = "riwayat.html"), 2000);
           } catch (err) {
             notifBox.className =
-              "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-white/80 backdrop-blur-md text-red-700 border-red-200 shadow-sm";
+              "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
             notifBox.innerText = "Gagal menghapus: " + err.message;
           }
         };
