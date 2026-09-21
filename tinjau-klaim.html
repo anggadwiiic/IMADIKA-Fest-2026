@@ -11,7 +11,7 @@
   <body
     class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
   >
-    <!-- Navbar -->
+    <!-- Navbar (Sinkron 100%) -->
     <nav
       id="main-navbar"
       class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
@@ -21,8 +21,6 @@
         class="font-extrabold text-2xl text-primary-dark tracking-tight"
         >FOUNDEX</a
       >
-
-      <!-- Nav Links -->
       <div
         class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
       >
@@ -66,23 +64,14 @@
         >
         <a
           href="riwayat.html"
-          class="hover:text-primary-dark transition-colors duration-200"
+          class="text-primary-dark font-semibold transition-colors duration-200"
           >Riwayat Laporan</a
         >
       </div>
-
-      <div class="hidden lg:flex items-center gap-4" id="navbar-auth">
-        <a
-          href="register.html"
-          class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm"
-          >Daftar</a
-        >
-        <a
-          href="login.html"
-          class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm"
-          >Masuk</a
-        >
-      </div>
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth"></div>
+      <button class="lg:hidden text-gray-600 focus:outline-none">
+        <i data-feather="menu" class="w-6 h-6"></i>
+      </button>
     </nav>
 
     <!-- Main Content -->
@@ -93,6 +82,12 @@
       >
         <i data-feather="arrow-left" class="w-4 h-4"></i> Kembali ke Riwayat
       </a>
+
+      <!-- Elemen Notifikasi -->
+      <div
+        id="tinjau-notif"
+        class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border"
+      ></div>
 
       <div class="mb-10">
         <h1
@@ -106,49 +101,72 @@
         </p>
       </div>
 
-      <!-- Ringkasan Barang -->
-      <div
-        class="bg-surface border border-gray-200 rounded-[16px] p-5 mb-10 flex items-center gap-4"
-      >
-        <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzgpFIBXhooCBfbsDB_JqhiuCkZ2NMfS5dBv4NhXQ5kA&s=10"
-          alt="Kunci"
-          class="w-20 h-20 object-cover rounded-xl shrink-0 bg-white border border-gray-100"
-        />
-        <div>
-          <div
-            class="text-[11px] font-bold text-success uppercase tracking-wider mb-1"
-          >
-            Laporan Anda
-          </div>
-          <h3 class="text-[16px] font-bold text-text-primary">
-            Kunci Motor Honda
-          </h3>
-          <div class="text-[13px] text-text-secondary mt-1">
-            Parkiran Gedung B &bull; 18 Sep 2026
-          </div>
-        </div>
+      <!-- Indikator Loading -->
+      <div id="tinjau-loading" class="flex justify-center py-20">
+        <p class="text-text-secondary">Memuat detail klaim...</p>
       </div>
 
-      <div class="space-y-8">
+      <!-- Kontainer Utama (Awalnya disembunyikan) -->
+      <div id="tinjau-content" class="hidden space-y-8">
+        <!-- Ringkasan Barang -->
+        <div
+          class="bg-surface border border-gray-200 rounded-[16px] p-5 flex items-center gap-4"
+        >
+          <img
+            id="tinjau-item-img"
+            src=""
+            alt="Foto Barang"
+            class="w-20 h-20 object-cover rounded-xl shrink-0 bg-white border border-gray-100"
+          />
+          <div>
+            <div
+              class="text-[11px] font-bold text-success uppercase tracking-wider mb-1"
+            >
+              Laporan Anda
+            </div>
+            <h3
+              id="tinjau-item-name"
+              class="text-[16px] font-bold text-text-primary"
+            >
+              Memuat...
+            </h3>
+            <div
+              id="tinjau-item-loc-date"
+              class="text-[13px] text-text-secondary mt-1"
+            >
+              Memuat...
+            </div>
+          </div>
+        </div>
+
         <div
           class="flex items-center justify-between border-b border-gray-100 pb-4"
         >
           <div class="flex items-center gap-3">
             <div
+              id="tinjau-claimant-initial"
               class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center font-bold text-text-secondary"
             >
-              R
+              ?
             </div>
             <div>
-              <div class="text-[15px] font-bold text-text-primary">Raka M.</div>
-              <div class="text-[12px] text-text-secondary">
-                Diajukan pada 20 Sep 2026, 14:30 WIB
+              <div
+                id="tinjau-claimant-name"
+                class="text-[15px] font-bold text-text-primary"
+              >
+                Memuat...
+              </div>
+              <div
+                id="tinjau-claimant-date"
+                class="text-[12px] text-text-secondary"
+              >
+                Memuat...
               </div>
             </div>
           </div>
         </div>
 
+        <!-- Ciri Khusus -->
         <div>
           <label
             class="block text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider"
@@ -156,12 +174,21 @@
             Jawaban Ciri Khusus / Pembuktian
           </label>
           <div
-            class="bg-white border border-gray-200 rounded-[16px] p-6 text-[16px] text-text-primary leading-relaxed shadow-sm"
+            id="tinjau-ciri-khusus"
+            class="bg-white border border-gray-200 rounded-[16px] p-6 text-[16px] text-text-primary leading-relaxed shadow-sm italic"
           >
-            "Kunci motornya ada gantungan tali warna merah bertuliskan 'Stay
-            Humble'. Di ujung kuncinya ada sedikit lecet bekas jatuh, dan
-            remotenya warna hitam."
+            Memuat jawaban...
           </div>
+        </div>
+
+        <!-- Lampiran Bukti (Jika Ada) -->
+        <div>
+          <label
+            class="block text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider"
+          >
+            Bukti Foto / Dokumen
+          </label>
+          <div id="tinjau-bukti-container" class="text-sm"></div>
         </div>
 
         <!-- Tombol Keputusan -->
@@ -206,8 +233,8 @@
         </h3>
         <p class="text-sm text-text-secondary leading-relaxed mb-8">
           Dengan menyetujui, Anda mengonfirmasi bahwa barang ini milik
-          <span class="font-bold text-text-primary">Raka M</span>. Nomor
-          WhatsApp Anda akan dibagikan kepadanya untuk proses pengembalian.
+          pengklaim. Nomor WhatsApp Anda akan dibagikan kepadanya untuk proses
+          pengembalian.
         </p>
         <div class="flex gap-3">
           <button
@@ -217,10 +244,7 @@
             Batal
           </button>
           <button
-            onclick="
-              alert('Klaim disetujui!');
-              window.location.href = 'riwayat.html';
-            "
+            id="btn-confirm-setuju"
             class="flex-1 bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 rounded-xl transition text-sm shadow-sm focus:outline-none"
           >
             Ya, Setujui
@@ -256,10 +280,7 @@
             Batal
           </button>
           <button
-            onclick="
-              alert('Klaim ditolak.');
-              window.location.href = 'riwayat.html';
-            "
+            id="btn-confirm-tolak"
             class="flex-1 bg-danger hover:bg-red-700 text-white font-semibold py-3 rounded-xl transition text-sm shadow-sm focus:outline-none"
           >
             Ya, Tolak Klaim
@@ -273,6 +294,7 @@
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
       >
+        <!-- Footer Content Sama Persis -->
         <div class="md:col-span-6 lg:col-span-5">
           <div class="flex items-center gap-3 mb-6">
             <div>
@@ -284,44 +306,6 @@
             Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
             yang terintegrasi
           </p>
-          <div class="flex flex-col gap-4 text-sm text-gray-400">
-            <div class="flex items-start gap-3">
-              <i
-                data-feather="map-pin"
-                class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span
-                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Surabaya</span
-              >
-            </div>
-            <div class="flex items-center gap-3">
-              <i
-                data-feather="mail"
-                class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span>humas@upnjatim.ac.id</span>
-            </div>
-          </div>
-        </div>
-        <div class="hidden lg:block lg:col-span-3"></div>
-        <div class="md:col-span-3 lg:col-span-2">
-          <h4 class="font-bold mb-6 text-white text-base">Quick Links</h4>
-          <ul class="flex flex-col gap-3 text-sm text-gray-400">
-            <li>
-              <a href="index.html" class="hover:text-white transition"
-                >Beranda</a
-              >
-            </li>
-            <li><a href="#" class="hover:text-white transition">FAQ</a></li>
-          </ul>
-        </div>
-        <div class="md:col-span-3 lg:col-span-2">
-          <h4 class="font-bold mb-6 text-white text-base">Social Media</h4>
-          <div class="flex gap-4">
-            <a href="#" class="text-gray-400 hover:text-white transition"
-              ><i data-feather="instagram" class="w-5 h-5"></i
-            ></a>
-          </div>
         </div>
       </div>
       <div
@@ -334,41 +318,19 @@
     <script src="./src/main.js"></script>
     <script>
       feather.replace();
-
-      const navbar = document.getElementById("main-navbar");
-      window.addEventListener("scroll", () => {
-        if (window.scrollY > 10) navbar.classList.add("shadow-md");
-        else navbar.classList.remove("shadow-md");
-      });
-
+      // Dropdown Navbar Logic
       const dropdownBtn = document.getElementById("dropdown-btn");
       const dropdownMenu = document.getElementById("dropdown-menu");
       const dropdownIcon = document.getElementById("dropdown-icon");
 
       dropdownBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const isExpanded = dropdownMenu.classList.contains("opacity-100");
-        if (isExpanded) {
-          dropdownMenu.classList.remove(
-            "opacity-100",
-            "visible",
-            "translate-y-0",
-          );
-          dropdownMenu.classList.add(
-            "opacity-0",
-            "invisible",
-            "-translate-y-2",
-          );
-          dropdownIcon.classList.remove("rotate-180");
-        } else {
-          dropdownMenu.classList.remove(
-            "opacity-0",
-            "invisible",
-            "-translate-y-2",
-          );
-          dropdownMenu.classList.add("opacity-100", "visible", "translate-y-0");
-          dropdownIcon.classList.add("rotate-180");
-        }
+        dropdownMenu.classList.toggle("opacity-0");
+        dropdownMenu.classList.toggle("invisible");
+        dropdownMenu.classList.toggle("-translate-y-2");
+        dropdownMenu.classList.toggle("translate-y-0");
+        dropdownMenu.classList.toggle("opacity-100");
+        dropdownIcon.classList.toggle("rotate-180");
       });
 
       document.addEventListener("click", (e) => {
@@ -376,20 +338,21 @@
           !dropdownBtn.contains(e.target) &&
           !dropdownMenu.contains(e.target)
         ) {
-          dropdownMenu.classList.remove(
-            "opacity-100",
-            "visible",
-            "translate-y-0",
-          );
           dropdownMenu.classList.add(
             "opacity-0",
             "invisible",
             "-translate-y-2",
           );
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
           dropdownIcon.classList.remove("rotate-180");
         }
       });
 
+      // Fungsi Modal UI
       function showModal(modalId) {
         const modal = document.getElementById(modalId);
         const content = document.getElementById(modalId + "-content");

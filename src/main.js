@@ -1413,6 +1413,155 @@ async function setupAjukanKlaim() {
 }
 
 // ==========================================
+// 11. LOGIKA TINJAU KLAIM (DINAMIS)
+// ==========================================
+async function setupTinjauKlaim() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const foundReportId = urlParams.get("id");
+  const container = document.getElementById("tinjau-content");
+  const loading = document.getElementById("tinjau-loading");
+  const notifBox = document.getElementById("tinjau-notif");
+
+  if (!container || !loading) return; // Hanya jalan di tinjau-klaim.html
+
+  if (!foundReportId) {
+    loading.innerHTML = `<p class="text-danger font-semibold">Error: ID Barang Temuan tidak valid.</p>`;
+    return;
+  }
+
+  try {
+    const {
+      data: { session },
+    } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    // 1. Ambil baris klaim yang berstatus 'pending' untuk laporan ini secara sekuensial (untuk menghindari error JOIN)
+    const { data: claims, error: claimsErr } = await supabaseClient
+      .from("claims")
+      .select("*")
+      .eq("found_report_id", foundReportId)
+      .eq("status", "pending")
+      .limit(1);
+
+    if (claimsErr || !claims || claims.length === 0) {
+      loading.innerHTML = `<p class="text-text-secondary font-semibold">Tidak ada klaim yang menunggu verifikasi untuk laporan ini.</p>`;
+      return;
+    }
+
+    const claim = claims[0]; // Ambil data klaim pertama
+
+    // 2. Ambil Profil Pengklaim
+    const { data: claimant } = await supabaseClient
+      .from("profiles")
+      .select("full_name")
+      .eq("id", claim.claimant_id)
+      .single();
+
+    // 3. Ambil Data Barang
+    const { data: report } = await supabaseClient
+      .from("reports")
+      .select("*, locations(name)")
+      .eq("id", claim.found_report_id)
+      .single();
+
+    // 4. Render ke HTML
+    const fallbackImg =
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
+    document.getElementById("tinjau-item-img").src =
+      report.photo_url || fallbackImg;
+    document.getElementById("tinjau-item-name").innerText = report.item_name;
+
+    const dateObj = new Date(report.event_at);
+    const dateStr = dateObj.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    document.getElementById("tinjau-item-loc-date").innerText =
+      `${report.locations?.name || "Lokasi tidak diketahui"} • ${dateStr}`;
+
+    const claimantName = claimant?.full_name || "Seseorang";
+    document.getElementById("tinjau-claimant-name").innerText = claimantName;
+    document.getElementById("tinjau-claimant-initial").innerText = claimantName
+      .charAt(0)
+      .toUpperCase();
+
+    const claimDate = new Date(claim.created_at).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    document.getElementById("tinjau-claimant-date").innerText =
+      `Diajukan pada ${claimDate} WIB`;
+
+    document.getElementById("tinjau-ciri-khusus").innerText =
+      `"${claim.special_detail_private || "Tidak ada deskripsi khusus."}"`;
+
+    const buktiContainer = document.getElementById("tinjau-bukti-container");
+    if (claim.evidence_url_private) {
+      buktiContainer.innerHTML = `<a href="${claim.evidence_url_private}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-gray-200 rounded-lg text-primary-dark font-semibold hover:bg-gray-50 transition"><i data-feather="external-link" class="w-4 h-4"></i> Lihat Bukti Foto/Dokumen</a>`;
+    } else {
+      buktiContainer.innerHTML = `<span class="text-gray-400 italic">Pengklaim tidak melampirkan file bukti tambahan.</span>`;
+    }
+
+    loading.classList.add("hidden");
+    container.classList.remove("hidden");
+    if (typeof feather !== "undefined") feather.replace();
+
+    // 5. Fungsi Update Klaim saat Tombol Modal di-klik
+    const updateClaimStatus = async (newStatus) => {
+      // Tutup modal
+      if (typeof hideModal === "function")
+        hideModal(newStatus === "approved" ? "modal-setuju" : "modal-tolak");
+
+      // Munculkan notifikasi loading
+      notifBox.classList.remove("hidden");
+      notifBox.className =
+        "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-info-soft text-on-info-soft border-blue-200";
+      notifBox.innerText = "Memproses keputusan Anda...";
+
+      try {
+        const { error } = await supabaseClient
+          .from("claims")
+          .update({
+            status: newStatus,
+            decided_by: session.user.id,
+            decided_at: new Date().toISOString(),
+          })
+          .eq("id", claim.id);
+
+        if (error) throw error;
+
+        // Feedback Sukses (Tanpa Alert)
+        notifBox.className =
+          "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
+        notifBox.innerText = `Klaim berhasil ${newStatus === "approved" ? "disetujui" : "ditolak"}. Mengarahkan ke Riwayat...`;
+
+        setTimeout(() => (window.location.href = "riwayat.html"), 2000);
+      } catch (err) {
+        notifBox.className =
+          "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
+        notifBox.innerText = "Gagal memproses klaim: " + err.message;
+      }
+    };
+
+    document
+      .getElementById("btn-confirm-setuju")
+      .addEventListener("click", () => updateClaimStatus("approved"));
+    document
+      .getElementById("btn-confirm-tolak")
+      .addEventListener("click", () => updateClaimStatus("rejected"));
+  } catch (err) {
+    loading.innerHTML = `<p class="text-danger font-semibold">${err.message}</p>`;
+  }
+}
+
+// ==========================================
 // INISIALISASI
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -1426,4 +1575,5 @@ document.addEventListener("DOMContentLoaded", () => {
   loadRecentReports();
   setupDetailLaporan();
   setupAjukanKlaim();
+  setupTinjauKlaim();
 });
