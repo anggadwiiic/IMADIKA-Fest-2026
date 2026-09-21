@@ -838,6 +838,168 @@ async function setupProfilPage() {
 }
 
 // ==========================================
+// 7. LOGIKA RIWAYAT LAPORAN (DINAMIS)
+// ==========================================
+async function setupRiwayatLaporan() {
+  const panelHilang = document.getElementById("panel-hilang");
+  const panelTemuan = document.getElementById("panel-temuan");
+  if (!panelHilang || !panelTemuan) return;
+
+  const {
+    data: { session },
+  } = await supabaseClient.auth.getSession();
+  if (!session) return;
+
+  // Render Skeleton UI
+  const skeleton = `<div class="text-center py-10"><p class="text-text-secondary">Memuat data...</p></div>`;
+  panelHilang.innerHTML = skeleton;
+  panelTemuan.innerHTML = skeleton;
+
+  try {
+    // A. Ambil semua laporan user (lost & found)
+    const { data: myReports, error } = await supabaseClient
+      .from("reports")
+      .select(`*, locations(name)`)
+      .eq("reporter_id", session.user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const lostReports = myReports.filter((r) => r.type === "lost");
+    const foundReports = myReports.filter((r) => r.type === "found");
+
+    // B. RENDER LAPORAN KEHILANGAN (LOST)
+    if (lostReports.length === 0) {
+      panelHilang.innerHTML = `<div class="text-center py-10 bg-surface rounded-xl border border-gray-200"><p class="text-text-secondary">Anda belum membuat laporan kehilangan.</p></div>`;
+    } else {
+      let lostHtml = "";
+      for (const report of lostReports) {
+        // Cek status klaim dari user ini
+        const { data: claims } = await supabaseClient
+          .from("claims")
+          .select("status")
+          .eq("lost_report_id", report.id)
+          .limit(1);
+
+        let badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="search" class="w-3.5 h-3.5"></i> Sedang Dicari</span>`;
+
+        if (claims && claims.length > 0) {
+          const status = claims[0].status;
+          if (status === "pending") {
+            badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-warning-soft text-on-warning-soft text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="clock" class="w-3.5 h-3.5"></i> Menunggu Verifikasi</span>`;
+          } else if (status === "approved") {
+            badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-primary-soft text-on-primary-soft text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="package" class="w-3.5 h-3.5"></i> Pengembalian Diproses</span>`;
+          } else if (status === "completed") {
+            badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-success-soft text-success text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="check-circle" class="w-3.5 h-3.5"></i> Selesai Dikembalikan</span>`;
+          }
+        } else {
+          // Jika belum ada klaim, cek potensi kecocokan di tabel matches
+          const { data: matches } = await supabaseClient
+            .from("matches")
+            .select("id")
+            .eq("lost_report_id", report.id)
+            .limit(1);
+
+          if (matches && matches.length > 0) {
+            badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-info-soft text-on-info-soft text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="sparkles" class="w-3.5 h-3.5"></i> Potensi Kecocokan</span>`;
+          }
+        }
+
+        const dateStr = new Date(report.event_at).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+        const fallbackImg =
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
+
+        lostHtml += `
+          <div class="bg-white border border-gray-200 rounded-[20px] p-4 flex flex-col sm:flex-row gap-5 hover:border-gray-300 transition-all hover:shadow-sm">
+            <img src="${report.photo_url || fallbackImg}" alt="Foto" class="w-full sm:w-[160px] h-[120px] object-cover rounded-xl shrink-0 bg-surface" />
+            <div class="flex-grow flex flex-col justify-center">
+              <h3 class="text-lg font-bold text-text-primary truncate max-w-[250px] md:max-w-[400px] mb-1.5">${report.item_name}</h3>
+              <div class="flex items-center gap-3 text-sm text-text-secondary mb-3">
+                <span class="flex items-center gap-1"><i data-feather="calendar" class="w-3.5 h-3.5"></i> ${dateStr}</span>
+                <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                <span class="flex items-center gap-1"><i data-feather="map-pin" class="w-3.5 h-3.5"></i> ${report.locations?.name || "Tidak diketahui"}</span>
+              </div>
+              <div>${badgeHtml}</div>
+            </div>
+            <div class="sm:border-l border-gray-100 sm:pl-5 flex flex-col justify-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
+              <a href="detail-laporan.html?id=${report.id}" class="w-full sm:w-auto text-center border border-gray-200 hover:bg-surface text-text-primary font-semibold py-2.5 px-6 rounded-xl transition text-sm block">Lihat Laporan</a>
+            </div>
+          </div>
+        `;
+      }
+      panelHilang.innerHTML = lostHtml;
+    }
+
+    // C. RENDER LAPORAN PENEMUAN (FOUND)
+    if (foundReports.length === 0) {
+      panelTemuan.innerHTML = `<div class="text-center py-10 bg-surface rounded-xl border border-gray-200"><p class="text-text-secondary">Anda belum membuat laporan penemuan.</p></div>`;
+    } else {
+      let foundHtml = "";
+      for (const report of foundReports) {
+        // Cek status klaim yang MASUK ke laporan temuan ini
+        const { data: claims } = await supabaseClient
+          .from("claims")
+          .select("status")
+          .eq("found_report_id", report.id)
+          .limit(1);
+
+        let badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="clock" class="w-3.5 h-3.5"></i> Menunggu Pemilik</span>`;
+        let actionBtn = `<a href="detail-laporan.html?id=${report.id}" class="w-full sm:w-auto text-center border border-gray-200 hover:bg-surface text-text-primary font-semibold py-2.5 px-6 rounded-xl transition text-sm block">Lihat Laporan</a>`;
+
+        if (claims && claims.length > 0) {
+          const status = claims[0].status;
+          if (status === "pending") {
+            badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-warning-soft text-on-warning-soft text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="alert-circle" class="w-3.5 h-3.5"></i> Menunggu Verifikasi</span>`;
+            actionBtn = `<a href="tinjau-klaim.html?id=${report.id}" class="w-full sm:w-auto text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-xl transition text-sm shadow-sm block">Tinjau Klaim</a>`;
+          } else if (status === "approved") {
+            badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-primary-soft text-on-primary-soft text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="package" class="w-3.5 h-3.5"></i> Pengembalian Diproses</span>`;
+          } else if (status === "completed") {
+            badgeHtml = `<span class="inline-flex items-center gap-1.5 bg-success-soft text-success text-[13px] font-semibold px-3 py-1 rounded-full"><i data-feather="check-circle" class="w-3.5 h-3.5"></i> Selesai Dikembalikan</span>`;
+          }
+        }
+
+        const dateStr = new Date(report.event_at).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        });
+        const fallbackImg =
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
+
+        foundHtml += `
+          <div class="bg-white border border-gray-200 rounded-[20px] p-4 flex flex-col sm:flex-row gap-5 hover:border-gray-300 transition-all hover:shadow-sm">
+            <img src="${report.photo_url || fallbackImg}" alt="Foto" class="w-full sm:w-[160px] h-[120px] object-cover rounded-xl shrink-0 bg-surface" />
+            <div class="flex-grow flex flex-col justify-center">
+              <h3 class="text-lg font-bold text-text-primary truncate max-w-[250px] md:max-w-[400px] mb-1.5">${report.item_name}</h3>
+              <div class="flex items-center gap-3 text-sm text-text-secondary mb-3">
+                <span class="flex items-center gap-1"><i data-feather="calendar" class="w-3.5 h-3.5"></i> ${dateStr}</span>
+                <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                <span class="flex items-center gap-1"><i data-feather="map-pin" class="w-3.5 h-3.5"></i> ${report.locations?.name || "Tidak diketahui"}</span>
+              </div>
+              <div>${badgeHtml}</div>
+            </div>
+            <div class="sm:border-l border-gray-100 sm:pl-5 flex flex-col justify-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+      }
+      panelTemuan.innerHTML = foundHtml;
+    }
+
+    if (typeof feather !== "undefined") feather.replace();
+  } catch (error) {
+    console.error(error);
+    panelHilang.innerHTML = `<div class="text-center py-10 text-danger border border-red-200 bg-danger-soft rounded-xl">Gagal memuat data laporan.</div>`;
+    panelTemuan.innerHTML = `<div class="text-center py-10 text-danger border border-red-200 bg-danger-soft rounded-xl">Gagal memuat data laporan.</div>`;
+  }
+}
+
+// ==========================================
 // INISIALISASI
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -847,4 +1009,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupReportForms();
   setupDaftarLaporan();
   setupProfilPage();
+  setupRiwayatLaporan();
 });

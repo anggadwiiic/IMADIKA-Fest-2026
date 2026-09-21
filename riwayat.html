@@ -11,7 +11,7 @@
   <body
     class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
   >
-    <!-- Navbar -->
+    <!-- Navbar (Sinkron 100%) -->
     <nav
       id="main-navbar"
       class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
@@ -21,8 +21,6 @@
         class="font-extrabold text-2xl text-primary-dark tracking-tight"
         >FOUNDEX</a
       >
-
-      <!-- Nav Links -->
       <div
         class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
       >
@@ -68,24 +66,14 @@
           >Riwayat Laporan</a
         >
       </div>
-
-      <div class="hidden lg:flex items-center gap-4" id="navbar-auth">
-        <a
-          href="register.html"
-          class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm"
-          >Daftar</a
-        >
-        <a
-          href="login.html"
-          class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm"
-          >Masuk</a
-        >
-      </div>
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth"></div>
+      <button class="lg:hidden text-gray-600 focus:outline-none">
+        <i data-feather="menu" class="w-6 h-6"></i>
+      </button>
     </nav>
 
     <!-- Main Content -->
     <main class="max-w-[1000px] mx-auto px-6 lg:px-12 py-12 flex-grow w-full">
-      <!-- Header Section -->
       <div class="mb-8">
         <h1
           class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight mb-2"
@@ -115,232 +103,27 @@
         </button>
       </div>
 
-      <!-- PANEL 1: LAPORAN KEHILANGAN -->
+      <!-- Container Dinamis -->
       <div
         id="panel-hilang"
         class="space-y-5 block transition-opacity duration-300"
       >
-        <!-- Item 1 -->
-        <div
-          class="bg-white border border-gray-200 rounded-[20px] p-4 flex flex-col sm:flex-row gap-5 hover:border-gray-300 transition-all hover:shadow-sm"
-        >
-          <img
-            src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&w=400&q=80"
-            alt="Laptop"
-            class="w-full sm:w-[160px] h-[120px] object-cover rounded-xl shrink-0 bg-surface"
-          />
-
-          <div class="flex-grow flex flex-col justify-center">
-            <div class="flex items-center gap-2 mb-1.5">
-              <h3
-                class="text-lg font-bold text-text-primary truncate max-w-[250px] md:max-w-[400px]"
-              >
-                Laptop ASUS Vivobook 14
-              </h3>
-            </div>
-            <div
-              class="flex items-center gap-3 text-sm text-text-secondary mb-3"
-            >
-              <span class="flex items-center gap-1"
-                ><i data-feather="calendar" class="w-3.5 h-3.5"></i> 19 Sep
-                2026</span
-              >
-              <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-              <span class="flex items-center gap-1"
-                ><i data-feather="map-pin" class="w-3.5 h-3.5"></i> Perpustakaan
-                Pusat</span
-              >
-            </div>
-            <div>
-              <span
-                class="inline-flex items-center gap-1.5 bg-info-soft text-on-info-soft text-[13px] font-semibold px-3 py-1 rounded-full"
-              >
-                <i data-feather="sparkles" class="w-3.5 h-3.5"></i> Potensi
-                Kecocokan
-              </span>
-            </div>
-          </div>
-
-          <div
-            class="sm:border-l border-gray-100 sm:pl-5 flex flex-col justify-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0"
-          >
-            <a
-              href="detail-laporan.html"
-              class="w-full sm:w-auto text-center border border-gray-200 hover:bg-surface text-text-primary font-semibold py-2.5 px-6 rounded-xl transition text-sm block"
-            >
-              Lihat Laporan
-            </a>
-          </div>
-        </div>
-
-        <!-- Item 2 -->
-        <div
-          class="bg-white border border-gray-200 rounded-[20px] p-4 flex flex-col sm:flex-row gap-5 hover:border-gray-300 transition-all hover:shadow-sm"
-        >
-          <img
-            src="https://images.unsplash.com/photo-1628151015968-3a4429e9ef04?ixlib=rb-4.0.3&w=400&q=80"
-            alt="Dompet"
-            class="w-full sm:w-[160px] h-[120px] object-cover rounded-xl shrink-0 bg-surface"
-          />
-
-          <div class="flex-grow flex flex-col justify-center">
-            <div class="flex items-center gap-2 mb-1.5">
-              <h3
-                class="text-lg font-bold text-text-primary truncate max-w-[250px] md:max-w-[400px]"
-              >
-                Dompet Kulit Cokelat
-              </h3>
-            </div>
-            <div
-              class="flex items-center gap-3 text-sm text-text-secondary mb-3"
-            >
-              <span class="flex items-center gap-1"
-                ><i data-feather="calendar" class="w-3.5 h-3.5"></i> 17 Sep
-                2026</span
-              >
-              <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-              <span class="flex items-center gap-1"
-                ><i data-feather="map-pin" class="w-3.5 h-3.5"></i> Kantin
-                Utama</span
-              >
-            </div>
-            <div>
-              <span
-                class="inline-flex items-center gap-1.5 bg-primary-soft text-on-primary-soft text-[13px] font-semibold px-3 py-1 rounded-full"
-              >
-                <i data-feather="package" class="w-3.5 h-3.5"></i> Pengembalian
-                Diproses
-              </span>
-            </div>
-          </div>
-
-          <div
-            class="sm:border-l border-gray-100 sm:pl-5 flex flex-col justify-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0"
-          >
-            <a
-              href="detail-laporan.html"
-              class="w-full sm:w-auto text-center border border-gray-200 hover:bg-surface text-text-primary font-semibold py-2.5 px-6 rounded-xl transition text-sm block"
-            >
-              Lihat Laporan
-            </a>
-          </div>
+        <div class="text-center py-10 text-text-secondary">
+          Memuat laporan kehilangan...
         </div>
       </div>
 
-      <!-- PANEL 2: LAPORAN PENEMUAN -->
       <div
         id="panel-temuan"
         class="space-y-5 hidden transition-opacity duration-300"
       >
-        <!-- Item 1 -->
-        <div
-          class="bg-white border border-gray-200 rounded-[20px] p-4 flex flex-col sm:flex-row gap-5 hover:border-gray-300 transition-all hover:shadow-sm"
-        >
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzgpFIBXhooCBfbsDB_JqhiuCkZ2NMfS5dBv4NhXQ5kA&s=10"
-            alt="Kunci"
-            class="w-full sm:w-[160px] h-[120px] object-cover rounded-xl shrink-0 bg-surface"
-          />
-
-          <div class="flex-grow flex flex-col justify-center">
-            <div class="flex items-center gap-2 mb-1.5">
-              <h3
-                class="text-lg font-bold text-text-primary truncate max-w-[250px] md:max-w-[400px]"
-              >
-                Kunci Motor Honda
-              </h3>
-            </div>
-            <div
-              class="flex items-center gap-3 text-sm text-text-secondary mb-3"
-            >
-              <span class="flex items-center gap-1"
-                ><i data-feather="calendar" class="w-3.5 h-3.5"></i> 18 Sep
-                2026</span
-              >
-              <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-              <span class="flex items-center gap-1"
-                ><i data-feather="map-pin" class="w-3.5 h-3.5"></i> Parkiran
-                Gedung B</span
-              >
-            </div>
-            <div>
-              <span
-                class="inline-flex items-center gap-1.5 bg-warning-soft text-on-warning-soft text-[13px] font-semibold px-3 py-1 rounded-full"
-              >
-                <i data-feather="clock" class="w-3.5 h-3.5"></i> Menunggu
-                Verifikasi
-              </span>
-            </div>
-          </div>
-
-          <div
-            class="sm:border-l border-gray-100 sm:pl-5 flex flex-col justify-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0"
-          >
-            <a
-              href="tinjau-klaim.html"
-              class="w-full sm:w-auto text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-xl transition text-sm shadow-sm block"
-            >
-              Tinjau Klaim
-            </a>
-          </div>
-        </div>
-
-        <!-- Item 2 -->
-        <div
-          class="bg-white border border-gray-200 rounded-[20px] p-4 flex flex-col sm:flex-row gap-5 hover:border-gray-300 transition-all hover:shadow-sm"
-        >
-          <img
-            src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?ixlib=rb-4.0.3&w=400&q=80"
-            alt="Botol"
-            class="w-full sm:w-[160px] h-[120px] object-cover rounded-xl shrink-0 bg-surface"
-          />
-
-          <div class="flex-grow flex flex-col justify-center">
-            <div class="flex items-center gap-2 mb-1.5">
-              <h3
-                class="text-lg font-bold text-text-primary truncate max-w-[250px] md:max-w-[400px]"
-              >
-                Botol Minum Hijau
-              </h3>
-            </div>
-            <div
-              class="flex items-center gap-3 text-sm text-text-secondary mb-3"
-            >
-              <span class="flex items-center gap-1"
-                ><i data-feather="calendar" class="w-3.5 h-3.5"></i> 16 Sep
-                2026</span
-              >
-              <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-              <span class="flex items-center gap-1"
-                ><i data-feather="map-pin" class="w-3.5 h-3.5"></i> Lapangan
-                Basket</span
-              >
-            </div>
-            <div>
-              <span
-                class="inline-flex items-center gap-1.5 bg-on-success-soft text-white text-[13px] font-semibold px-3 py-1 rounded-full"
-              >
-                <i data-feather="check-circle" class="w-3.5 h-3.5"></i> Selesai
-                Dikembalikan
-              </span>
-            </div>
-          </div>
-
-          <div
-            class="sm:border-l border-gray-100 sm:pl-5 flex flex-col justify-center shrink-0 w-full sm:w-auto mt-2 sm:mt-0"
-          >
-            <a
-              href="detail-laporan.html"
-              class="w-full sm:w-auto text-center border border-gray-200 hover:bg-surface text-text-primary font-semibold py-2.5 px-6 rounded-xl transition text-sm block"
-            >
-              Lihat Laporan
-            </a>
-          </div>
+        <div class="text-center py-10 text-text-secondary">
+          Memuat laporan penemuan...
         </div>
       </div>
     </main>
 
-    <!-- Footer Standar (Full) -->
+    <!-- Footer (Sinkron 100%) -->
     <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
@@ -361,8 +144,8 @@
               <i
                 data-feather="map-pin"
                 class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span
+              ></i
+              ><span
                 >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Surabaya</span
               >
             </div>
@@ -370,15 +153,15 @@
               <i
                 data-feather="mail"
                 class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span>humas@upnjatim.ac.id</span>
+              ></i
+              ><span>humas@upnjatim.ac.id</span>
             </div>
             <div class="flex items-center gap-3">
               <i
                 data-feather="phone"
                 class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span>08123456789</span>
+              ></i
+              ><span>08123456789</span>
             </div>
           </div>
         </div>
@@ -423,40 +206,19 @@
     <script>
       feather.replace();
 
-      const navbar = document.getElementById("main-navbar");
-      window.addEventListener("scroll", () => {
-        if (window.scrollY > 10) navbar.classList.add("shadow-md");
-        else navbar.classList.remove("shadow-md");
-      });
-
+      // Dropdown Logic
       const dropdownBtn = document.getElementById("dropdown-btn");
       const dropdownMenu = document.getElementById("dropdown-menu");
       const dropdownIcon = document.getElementById("dropdown-icon");
 
       dropdownBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const isExpanded = dropdownMenu.classList.contains("opacity-100");
-        if (isExpanded) {
-          dropdownMenu.classList.remove(
-            "opacity-100",
-            "visible",
-            "translate-y-0",
-          );
-          dropdownMenu.classList.add(
-            "opacity-0",
-            "invisible",
-            "-translate-y-2",
-          );
-          dropdownIcon.classList.remove("rotate-180");
-        } else {
-          dropdownMenu.classList.remove(
-            "opacity-0",
-            "invisible",
-            "-translate-y-2",
-          );
-          dropdownMenu.classList.add("opacity-100", "visible", "translate-y-0");
-          dropdownIcon.classList.add("rotate-180");
-        }
+        dropdownMenu.classList.toggle("opacity-0");
+        dropdownMenu.classList.toggle("invisible");
+        dropdownMenu.classList.toggle("-translate-y-2");
+        dropdownMenu.classList.toggle("translate-y-0");
+        dropdownMenu.classList.toggle("opacity-100");
+        dropdownIcon.classList.toggle("rotate-180");
       });
 
       document.addEventListener("click", (e) => {
@@ -464,20 +226,21 @@
           !dropdownBtn.contains(e.target) &&
           !dropdownMenu.contains(e.target)
         ) {
-          dropdownMenu.classList.remove(
-            "opacity-100",
-            "visible",
-            "translate-y-0",
-          );
           dropdownMenu.classList.add(
             "opacity-0",
             "invisible",
             "-translate-y-2",
           );
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
           dropdownIcon.classList.remove("rotate-180");
         }
       });
 
+      // Tab Switch Logic
       function switchTab(tabName) {
         const tabHilang = document.getElementById("tab-hilang");
         const tabTemuan = document.getElementById("tab-temuan");
@@ -485,51 +248,17 @@
         const panelTemuan = document.getElementById("panel-temuan");
 
         if (tabName === "hilang") {
-          tabHilang.classList.remove(
-            "border-transparent",
-            "text-text-secondary",
-            "font-semibold",
-          );
-          tabHilang.classList.add(
-            "border-primary-dark",
-            "text-primary-dark",
-            "font-bold",
-          );
-          tabTemuan.classList.remove(
-            "border-primary-dark",
-            "text-primary-dark",
-            "font-bold",
-          );
-          tabTemuan.classList.add(
-            "border-transparent",
-            "text-text-secondary",
-            "font-semibold",
-          );
-
+          tabHilang.className =
+            "pb-4 text-[16px] font-bold border-b-2 transition-colors duration-200 border-primary-dark text-primary-dark focus:outline-none";
+          tabTemuan.className =
+            "pb-4 text-[16px] font-semibold border-b-2 border-transparent text-text-secondary hover:text-text-primary transition-colors duration-200 focus:outline-none";
           panelTemuan.classList.add("hidden");
           panelHilang.classList.remove("hidden");
         } else {
-          tabTemuan.classList.remove(
-            "border-transparent",
-            "text-text-secondary",
-            "font-semibold",
-          );
-          tabTemuan.classList.add(
-            "border-primary-dark",
-            "text-primary-dark",
-            "font-bold",
-          );
-          tabHilang.classList.remove(
-            "border-primary-dark",
-            "text-primary-dark",
-            "font-bold",
-          );
-          tabHilang.classList.add(
-            "border-transparent",
-            "text-text-secondary",
-            "font-semibold",
-          );
-
+          tabTemuan.className =
+            "pb-4 text-[16px] font-bold border-b-2 transition-colors duration-200 border-primary-dark text-primary-dark focus:outline-none";
+          tabHilang.className =
+            "pb-4 text-[16px] font-semibold border-b-2 border-transparent text-text-secondary hover:text-text-primary transition-colors duration-200 focus:outline-none";
           panelHilang.classList.add("hidden");
           panelTemuan.classList.remove("hidden");
         }
