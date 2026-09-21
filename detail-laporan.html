@@ -11,10 +11,10 @@
   <body
     class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
   >
-    <!-- Navbar (Sinkron 100%) -->
+    <!-- Navbar -->
     <nav
       id="main-navbar"
-      class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+      class="bg-white/80 backdrop-blur-md border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
     >
       <a
         href="index.html"
@@ -43,7 +43,7 @@
           </button>
           <div
             id="dropdown-menu"
-            class="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
+            class="absolute top-full left-0 mt-1 w-48 bg-white/90 backdrop-blur-lg border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
           >
             <a
               href="lapor-hilang.html"
@@ -83,25 +83,20 @@
         <i data-feather="arrow-left" class="w-4 h-4"></i> Kembali
       </a>
 
-      <!-- Snackbar / Notifikasi -->
+      <!-- Snackbar Notifikasi -->
       <div
         id="detail-notif"
         class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border"
       ></div>
-
-      <!-- Indikator Loading -->
       <div id="detail-loading" class="flex justify-center py-20">
         <p class="text-text-secondary">Memuat data laporan...</p>
       </div>
 
-      <!-- Konten Utama (Awalnya disembunyikan) -->
       <div
         id="detail-content"
         class="grid grid-cols-1 lg:grid-cols-3 gap-12 hidden"
       >
-        <!-- KOLOM KIRI: INFORMASI BARANG -->
         <div class="lg:col-span-2">
-          <!-- Gambar Utama -->
           <div
             class="w-full h-[300px] sm:h-[400px] rounded-[24px] overflow-hidden bg-surface mb-8"
           >
@@ -113,38 +108,31 @@
             />
           </div>
 
-          <!-- Header & Badge Status -->
           <div class="mb-10">
-            <div class="flex items-center gap-2.5 mb-3" id="detail-badges">
-              <!-- Akan diisi JS -->
-            </div>
+            <div
+              class="flex items-center gap-2.5 mb-3"
+              id="detail-badges"
+            ></div>
             <h1
               id="detail-nama"
               class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight"
-            >
-              <!-- Nama Barang -->
-            </h1>
+            ></h1>
           </div>
 
-          <!-- Detail Vertikal -->
           <div class="space-y-10 max-w-2xl">
-            <!-- Deskripsi -->
             <div>
               <p
                 id="detail-deskripsi"
                 class="text-[16px] text-text-secondary leading-relaxed"
               ></p>
             </div>
-
-            <!-- List Informasi -->
             <div class="space-y-4 pt-4 border-t border-gray-100">
               <div
                 class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-8"
               >
                 <span class="text-sm text-text-secondary w-32 shrink-0"
                   >Kategori</span
-                >
-                <span
+                ><span
                   id="detail-kategori"
                   class="text-[16px] font-medium text-text-primary"
                 ></span>
@@ -154,8 +142,7 @@
               >
                 <span class="text-sm text-text-secondary w-32 shrink-0"
                   >Pelapor</span
-                >
-                <span
+                ><span
                   id="detail-pelapor"
                   class="text-[16px] font-medium text-text-primary"
                 ></span>
@@ -183,20 +170,18 @@
                   <span
                     id="detail-lokasi"
                     class="text-[16px] font-medium text-text-primary block mb-0.5"
-                  ></span>
-                  <span
+                  ></span
+                  ><span
                     id="detail-lokasi-detail"
                     class="text-[15px] text-text-secondary"
                   ></span>
                 </div>
               </div>
             </div>
-
-            <!-- Helper Privasi -->
             <div class="pt-6">
               <p class="text-[13px] text-gray-400 flex items-start gap-2">
-                <i data-feather="lock" class="w-4 h-4 shrink-0 mt-0.5"></i>
-                <span
+                <i data-feather="lock" class="w-4 h-4 shrink-0 mt-0.5"></i
+                ><span
                   >Informasi privasi terjaga. Data ciri khusus tidak ditampilkan
                   secara publik demi keamanan klaim.</span
                 >
@@ -205,20 +190,18 @@
           </div>
         </div>
 
-        <!-- KOLOM KANAN: PANEL AKSI (Dirender JS) -->
-        <div class="lg:col-span-1" id="detail-action-panel">
-          <!-- Widget dinamis akan dirender ke sini -->
-        </div>
+        <!-- PANEL AKSI -->
+        <div class="lg:col-span-1" id="detail-action-panel"></div>
       </div>
     </main>
 
-    <!-- Modal Konfirmasi Selesai -->
+    <!-- Modal Konfirmasi Selesai (Glassmorphism) -->
     <div
       id="modal-selesai"
-      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
+      class="fixed inset-0 bg-black/30 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
     >
       <div
-        class="bg-white rounded-[24px] p-8 max-w-md w-full shadow-2xl transform scale-95 transition-transform duration-300"
+        class="bg-white/90 backdrop-blur-xl border border-white/50 rounded-[24px] p-8 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300"
         id="modal-selesai-content"
       >
         <div
@@ -229,28 +212,66 @@
         <h3 class="text-xl font-bold text-text-primary mb-2">
           Tandai Selesai?
         </h3>
-        <p class="text-sm text-text-secondary leading-relaxed mb-8">
-          Apakah Anda yakin barang ini sudah berhasil diserahterimakan kepada
-          pemilik yang sah? Laporan akan ditutup dan tidak dapat diubah lagi.
+        <p
+          id="modal-selesai-desc"
+          class="text-sm text-text-secondary leading-relaxed mb-8"
+        >
+          Apakah Anda yakin proses serah terima sudah selesai?
         </p>
         <div class="flex gap-3">
           <button
             onclick="hideModal('modal-selesai')"
-            class="flex-1 bg-surface text-text-primary hover:bg-gray-200 font-semibold py-3 rounded-xl transition text-sm focus:outline-none"
+            class="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-text-primary font-semibold py-2.5 rounded-xl transition text-sm focus:outline-none"
           >
             Belum
           </button>
           <button
             id="btn-confirm-selesai"
-            class="flex-1 bg-success hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition text-sm shadow-sm focus:outline-none"
+            class="flex-1 bg-success hover:bg-green-600 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-sm focus:outline-none"
           >
-            Ya, Sudah Selesai
+            Ya, Selesai
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Footer Standar (Sinkron 100%) -->
+    <!-- Modal Konfirmasi Hapus (Glassmorphism) -->
+    <div
+      id="modal-hapus"
+      class="fixed inset-0 bg-black/30 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
+    >
+      <div
+        class="bg-white/90 backdrop-blur-xl border border-white/50 rounded-[24px] p-8 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300"
+        id="modal-hapus-content"
+      >
+        <div
+          class="w-12 h-12 rounded-full bg-danger-soft text-danger flex items-center justify-center mb-5"
+        >
+          <i data-feather="trash-2" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-text-primary mb-2">Hapus Laporan?</h3>
+        <p class="text-sm text-text-secondary leading-relaxed mb-8">
+          Laporan ini akan dihapus secara permanen dari sistem. Tindakan ini
+          tidak dapat dibatalkan.
+        </p>
+        <div class="flex gap-3">
+          <button
+            onclick="hideModal('modal-hapus')"
+            class="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-text-primary font-semibold py-2.5 rounded-xl transition text-sm focus:outline-none"
+          >
+            Batal
+          </button>
+          <button
+            id="btn-confirm-hapus"
+            class="flex-1 bg-danger hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-sm focus:outline-none"
+          >
+            Ya, Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
     <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
@@ -266,42 +287,6 @@
             Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
             yang terintegrasi
           </p>
-          <div class="flex flex-col gap-4 text-sm text-gray-400">
-            <div class="flex items-start gap-3">
-              <i
-                data-feather="map-pin"
-                class="w-5 h-5 text-primary-dark shrink-0"
-              ></i
-              ><span>UPN "Veteran" Jawa Timur, Surabaya</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <i
-                data-feather="mail"
-                class="w-5 h-5 text-primary-dark shrink-0"
-              ></i
-              ><span>humas@upnjatim.ac.id</span>
-            </div>
-          </div>
-        </div>
-        <div class="hidden lg:block lg:col-span-3"></div>
-        <div class="md:col-span-3 lg:col-span-2">
-          <h4 class="font-bold mb-6 text-white text-base">Quick Links</h4>
-          <ul class="flex flex-col gap-3 text-sm text-gray-400">
-            <li>
-              <a href="index.html" class="hover:text-white transition"
-                >Beranda</a
-              >
-            </li>
-            <li><a href="#" class="hover:text-white transition">FAQ</a></li>
-          </ul>
-        </div>
-        <div class="md:col-span-3 lg:col-span-2">
-          <h4 class="font-bold mb-6 text-white text-base">Social Media</h4>
-          <div class="flex gap-4">
-            <a href="#" class="text-gray-400 hover:text-white transition"
-              ><i data-feather="instagram" class="w-5 h-5"></i
-            ></a>
-          </div>
         </div>
       </div>
       <div
@@ -314,7 +299,6 @@
     <script src="./src/main.js"></script>
     <script>
       feather.replace();
-
       const dropdownBtn = document.getElementById("dropdown-btn");
       const dropdownMenu = document.getElementById("dropdown-menu");
       const dropdownIcon = document.getElementById("dropdown-icon");
@@ -328,7 +312,6 @@
         dropdownMenu.classList.toggle("opacity-100");
         dropdownIcon.classList.toggle("rotate-180");
       });
-
       document.addEventListener("click", (e) => {
         if (
           !dropdownBtn.contains(e.target) &&
@@ -348,10 +331,9 @@
         }
       });
 
-      // Fungsi UI Modal
       function showModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const content = document.getElementById(modalId + "-content");
+        const modal = document.getElementById(modalId),
+          content = document.getElementById(modalId + "-content");
         modal.classList.remove("hidden");
         modal.classList.add("flex");
         setTimeout(() => {
@@ -359,10 +341,9 @@
           content.classList.remove("scale-95");
         }, 10);
       }
-
       function hideModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const content = document.getElementById(modalId + "-content");
+        const modal = document.getElementById(modalId),
+          content = document.getElementById(modalId + "-content");
         modal.classList.add("opacity-0");
         content.classList.add("scale-95");
         setTimeout(() => {
@@ -370,6 +351,10 @@
           modal.classList.remove("flex");
         }, 300);
       }
+      window.openModalSelesai = function (descText) {
+        document.getElementById("modal-selesai-desc").innerText = descText;
+        showModal("modal-selesai");
+      };
     </script>
   </body>
 </html>
