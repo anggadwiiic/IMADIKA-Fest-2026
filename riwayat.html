@@ -11,16 +11,18 @@
   <body
     class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
   >
-    <!-- Navbar (Sinkron 100%) -->
+    <!-- Navbar -->
     <nav
       id="main-navbar"
-      class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+      class="h-[80px] px-6 lg:px-12 bg-background border-b border-gray-100 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
     >
       <a
         href="index.html"
         class="font-extrabold text-2xl text-primary-dark tracking-tight"
         >FOUNDEX</a
       >
+
+      <!-- Nav Links (Desktop) -->
       <div
         class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
       >
@@ -47,12 +49,12 @@
           >
             <a
               href="lapor-hilang.html"
-              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-gray-50 transition"
               >Kehilangan Barang</a
             >
             <a
               href="lapor-temuan.html"
-              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-gray-50 transition"
               >Menemukan Barang</a
             >
           </div>
@@ -62,15 +64,73 @@
           class="hover:text-primary-dark transition-colors duration-200"
           >Daftar Laporan</a
         >
-        <a href="riwayat.html" class="text-primary-dark font-semibold"
+        <a
+          href="riwayat.html"
+          class="hover:text-primary-dark transition-colors duration-200"
           >Riwayat Laporan</a
         >
       </div>
+
+      <!-- Auth CTA (Desktop) -->
       <div class="hidden lg:flex items-center gap-4" id="navbar-auth"></div>
-      <button class="lg:hidden text-gray-600 focus:outline-none">
+
+      <!-- Mobile Menu Button -->
+      <button
+        id="mobile-menu-btn"
+        class="lg:hidden text-gray-600 focus:outline-none"
+      >
         <i data-feather="menu" class="w-6 h-6"></i>
       </button>
     </nav>
+
+    <!-- Mobile Sidebar Menu Overlay -->
+    <div
+      id="mobile-sidebar-overlay"
+      class="fixed inset-0 bg-black/50 z-[60] hidden opacity-0 transition-opacity duration-300"
+    ></div>
+
+    <!-- Mobile Sidebar Content -->
+    <div
+      id="mobile-sidebar"
+      class="fixed top-0 right-0 h-full w-64 bg-white z-[70] shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
+    >
+      <div
+        class="flex items-center justify-between p-6 border-b border-gray-100"
+      >
+        <span class="font-extrabold text-xl text-primary-dark tracking-tight"
+          >MENU</span
+        >
+        <button
+          id="mobile-close-btn"
+          class="text-gray-500 hover:text-danger focus:outline-none"
+        >
+          <i data-feather="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <div
+        class="flex-grow overflow-y-auto p-6 flex flex-col gap-6 text-base font-semibold text-gray-700"
+      >
+        <a href="index.html" class="hover:text-primary-dark">Beranda</a>
+        <a href="lapor-hilang.html" class="hover:text-primary-dark"
+          >Lapor Kehilangan</a
+        >
+        <a href="lapor-temuan.html" class="hover:text-primary-dark"
+          >Lapor Penemuan</a
+        >
+        <a href="daftar-laporan.html" class="hover:text-primary-dark"
+          >Daftar Laporan</a
+        >
+        <a href="riwayat.html" class="hover:text-primary-dark"
+          >Riwayat Laporan</a
+        >
+      </div>
+      <div
+        class="p-6 border-t border-gray-100 flex flex-col gap-3"
+        id="mobile-navbar-auth"
+      >
+        <!-- Auth state mobile akan disuntikkan ke sini via JS -->
+      </div>
+    </div>
 
     <!-- Main Content -->
     <main class="max-w-[1000px] mx-auto px-6 lg:px-12 py-12 flex-grow w-full">

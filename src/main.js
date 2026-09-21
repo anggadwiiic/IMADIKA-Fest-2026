@@ -9,6 +9,7 @@ async function checkAuthState() {
     data: { session },
   } = await supabaseClient.auth.getSession();
   const authContainer = document.getElementById("navbar-auth");
+  const mobileAuthContainer = document.getElementById("mobile-navbar-auth");
   const currentPage = window.location.pathname.split("/").pop() || "index.html";
   const protectedPages = [
     "profil.html",
@@ -24,12 +25,15 @@ async function checkAuthState() {
       window.location.href = "login.html";
       return;
     }
+
     if (authContainer)
       authContainer.innerHTML = `<a href="register.html" class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm">Daftar</a><a href="login.html" class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">Masuk</a>`;
+    if (mobileAuthContainer)
+      mobileAuthContainer.innerHTML = `<a href="register.html" class="text-center text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-3 px-6 rounded-xl transition text-base">Daftar</a><a href="login.html" class="text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-base">Masuk</a>`;
     return;
   }
 
-  if (authContainer && session) {
+  if (session) {
     const { data: profile, error } = await supabaseClient
       .from("profiles")
       .select("full_name")
@@ -44,20 +48,38 @@ async function checkAuthState() {
     const userName = profile.full_name || session.user.email.split("@")[0];
     const initial = userName.charAt(0).toUpperCase();
 
-    authContainer.innerHTML = `
-      <div class="flex items-center gap-4">
-        <button class="relative text-gray-500 hover:text-primary-dark transition p-1 focus:outline-none"><i data-feather="bell" class="w-5 h-5"></i><span class="absolute top-1 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-white"></span></button>
-        <div class="w-px h-6 bg-gray-200"></div>
-        <a href="profil.html" class="flex items-center gap-2 text-sm font-semibold text-text-primary hover:text-primary-dark transition"><div class="w-8 h-8 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-xs">${initial}</div><span class="hidden sm:block">${userName}</span></a>
-        <button id="btn-logout" class="text-xs text-danger font-semibold border border-danger-soft px-3 py-1.5 rounded-lg hover:bg-danger-soft transition ml-2">Keluar</button>
-      </div>`;
+    if (authContainer) {
+      authContainer.innerHTML = `
+        <div class="flex items-center gap-4">
+          <button class="relative text-gray-500 hover:text-primary-dark transition p-1 focus:outline-none"><i data-feather="bell" class="w-5 h-5"></i><span class="absolute top-1 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-white"></span></button>
+          <div class="w-px h-6 bg-gray-200"></div>
+          <a href="profil.html" class="flex items-center gap-2 text-sm font-semibold text-text-primary hover:text-primary-dark transition"><div class="w-8 h-8 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-xs">${initial}</div><span class="hidden sm:block">${userName}</span></a>
+          <button id="btn-logout" class="text-xs text-danger font-semibold border border-danger-soft px-3 py-1.5 rounded-lg hover:bg-danger-soft transition ml-2">Keluar</button>
+        </div>`;
+    }
+
+    if (mobileAuthContainer) {
+      mobileAuthContainer.innerHTML = `
+        <a href="profil.html" class="flex items-center gap-3 bg-surface p-3 rounded-xl border border-gray-100 mb-2">
+          <div class="w-10 h-10 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-sm shrink-0">${initial}</div>
+          <span class="font-bold text-text-primary truncate">${userName}</span>
+        </a>
+        <button id="btn-logout-mobile" class="w-full text-center text-danger font-semibold border border-danger-soft bg-danger-soft hover:bg-red-200 py-3 px-6 rounded-xl transition text-sm">Keluar Akun</button>
+      `;
+    }
+
     if (typeof feather !== "undefined") feather.replace();
+
+    const handleLogout = async () => {
+      await supabaseClient.auth.signOut();
+      window.location.href = "login.html";
+    };
     document
       .getElementById("btn-logout")
-      ?.addEventListener("click", async () => {
-        await supabaseClient.auth.signOut();
-        window.location.href = "login.html";
-      });
+      ?.addEventListener("click", handleLogout);
+    document
+      .getElementById("btn-logout-mobile")
+      ?.addEventListener("click", handleLogout);
   }
 }
 
@@ -950,20 +972,15 @@ async function setupDetailLaporan() {
     const actionPanel = document.getElementById("detail-action-panel");
     let actionHtml = "";
 
-    // SHADOW INDEX 0 16 32 UNTUK TOMBOL HAPUS (Kini tampil lebih mencolok)
     const deleteBtnHtml =
       isMyReport && report.status === "active"
-        ? `<button onclick="showModal('modal-hapus')" class="mt-6 w-full flex items-center justify-center gap-2 text-white bg-danger hover:bg-red-700 font-semibold py-3 px-4 rounded-xl transition text-sm shadow-[0_16px_32px_0px_rgba(0,0,0,0.15)]"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
+        ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-danger bg-danger-soft/50 hover:bg-danger-soft font-semibold py-2.5 px-4 rounded-xl transition text-[13px] border border-red-100"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
         : "";
 
-    // SHADOW INDEX 0 16 32 UNTUK PANEL AKSI KANAN
-    const panelStyle =
-      "sticky top-24 bg-white rounded-[24px] p-8 sm:p-10 text-left border border-gray-100 shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)]";
-
     if (!currentUserId) {
-      actionHtml = `<div class="${panelStyle}"><div class="w-12 h-12 bg-surface rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
+      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-left border border-gray-200"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
     } else if (activeClaim && activeClaim.status === "completed") {
-      actionHtml = `<div class="${panelStyle} text-center"><i data-feather="check-circle" class="w-10 h-10 text-success mx-auto mb-4"></i><h2 class="text-[20px] font-bold text-text-primary mb-2">Telah Dikembalikan</h2><p class="text-[14px] text-text-secondary">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p></div>`;
+      actionHtml = `<div class="sticky top-24 bg-success-soft/30 border border-success-soft rounded-[24px] p-8 sm:p-10 text-center"><i data-feather="check-circle" class="w-10 h-10 text-success mx-auto mb-4"></i><h2 class="text-[20px] font-bold text-text-primary mb-2">Telah Dikembalikan</h2><p class="text-[14px] text-text-secondary">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p></div>`;
     } else if (activeClaim && activeClaim.status === "approved") {
       let contactProfile = null,
         contactRole = "",
@@ -990,8 +1007,7 @@ async function setupDetailLaporan() {
           ? `href="https://wa.me/${contactProfile.whatsapp}" target="_blank"`
           : `href="#" onclick="document.getElementById('detail-notif').classList.remove('hidden'); document.getElementById('detail-notif').className='mb-6 p-4 rounded-xl text-sm font-semibold border block bg-warning-soft text-on-warning-soft border-yellow-200'; document.getElementById('detail-notif').innerText='Peringatan: Pengguna ini belum mencantumkan nomor WhatsApp.'; return false;"`;
 
-        // UI KONTAK & TOMBOL WA (Disesuaikan dengan tema)
-        actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2><p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p><div class="bg-surface p-5 rounded-xl border border-gray-200 mb-6"><div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div><div class="font-bold text-text-primary mb-4 text-lg">${contactProfile.full_name || "Tidak ada nama"}</div><a ${waAction} class="flex items-center justify-center gap-2 w-full bg-success hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition text-[14px] shadow-sm"><i data-feather="message-circle" class="w-4 h-4"></i> Hubungi via WhatsApp</a></div><p class="text-[13px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p><button onclick="openModalSelesai('${modalDescText}')" class="w-full bg-white border border-gray-200 hover:bg-surface text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">Tandai Selesai</button></div>`;
+        actionHtml = `<div class="sticky top-24 bg-primary-soft/30 border border-primary-soft rounded-[24px] p-8 sm:p-10 text-left"><h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2><p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p><div class="bg-white p-5 rounded-xl border border-gray-200 mb-6 shadow-sm"><div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div><div class="font-bold text-text-primary mb-4 text-lg">${contactProfile.full_name || "Tidak ada nama"}</div><a ${waAction} class="flex items-center justify-center gap-2 w-full bg-success hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition text-[14px] shadow-sm"><i data-feather="message-circle" class="w-4 h-4"></i> Hubungi via WhatsApp</a></div><p class="text-[13px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p><button onclick="openModalSelesai('${modalDescText}')" class="w-full bg-surface border border-gray-200 hover:bg-gray-200 text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">Tandai Selesai</button></div>`;
 
         setTimeout(() => {
           const btnSelesai = document.getElementById("btn-confirm-selesai");
@@ -1032,7 +1048,7 @@ async function setupDetailLaporan() {
           }
         }, 500);
       } else {
-        actionHtml = `<div class="${panelStyle} text-center"><i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Laporan Dikunci</h2><p class="text-sm text-text-secondary">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p></div>`;
+        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-center"><i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Laporan Dikunci</h2><p class="text-sm text-text-secondary">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p></div>`;
       }
     } else if (isLost && isMyReport) {
       const { data: matches } = await supabaseClient
@@ -1048,12 +1064,12 @@ async function setupDetailLaporan() {
               `<div class="bg-surface border border-gray-200 p-4 rounded-xl mb-4 text-left"><div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div><div class="text-xs text-text-secondary mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div><a href="ajukan-claim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a></div>`,
           )
           .join("");
-        actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2><p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>${matchItemsHtml}${deleteBtnHtml}</div>`;
+        actionHtml = `<div class="sticky top-24 bg-info-soft/30 border border-info-soft rounded-[24px] p-8 sm:p-10 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2><p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>${matchItemsHtml}${deleteBtnHtml}</div>`;
       } else {
-        actionHtml = `<div class="${panelStyle}"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p>${deleteBtnHtml}</div>`;
+        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p>${deleteBtnHtml}</div>`;
       }
     } else if (!isLost && !isMyReport) {
-      actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a></div>`;
+      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a></div>`;
     } else {
       actionHtml = `<div class="sticky top-24 bg-transparent p-0 text-center">${deleteBtnHtml}</div>`;
       document
@@ -1242,7 +1258,7 @@ async function setupAjukanKlaim() {
 
 /* TINJAU KLAIM */
 async function setupTinjauKlaim() {
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = newSearchParams(window.location.search);
   const foundReportId = urlParams.get("id");
   const container = document.getElementById("tinjau-content");
   const loading = document.getElementById("tinjau-loading");
@@ -1370,9 +1386,39 @@ async function setupTinjauKlaim() {
   }
 }
 
+/* MOBILE SIDEBAR */
+function setupMobileSidebar() {
+  const mobileBtn = document.getElementById("mobile-menu-btn");
+  const closeBtn = document.getElementById("mobile-close-btn");
+  const sidebar = document.getElementById("mobile-sidebar");
+  const overlay = document.getElementById("mobile-sidebar-overlay");
+
+  if (!mobileBtn || !sidebar || !overlay) return;
+
+  const toggleSidebar = () => {
+    const isClosed = sidebar.classList.contains("translate-x-full");
+    if (isClosed) {
+      overlay.classList.remove("hidden");
+      setTimeout(() => overlay.classList.remove("opacity-0"), 10);
+      sidebar.classList.remove("translate-x-full");
+      document.body.style.overflow = "hidden";
+    } else {
+      sidebar.classList.add("translate-x-full");
+      overlay.classList.add("opacity-0");
+      setTimeout(() => overlay.classList.add("hidden"), 300);
+      document.body.style.overflow = "";
+    }
+  };
+
+  mobileBtn.addEventListener("click", toggleSidebar);
+  if (closeBtn) closeBtn.addEventListener("click", toggleSidebar);
+  overlay.addEventListener("click", toggleSidebar);
+}
+
 /* INIT */
 document.addEventListener("DOMContentLoaded", () => {
   checkAuthState();
+  setupMobileSidebar();
   setupAuthForms();
   loadMasterData();
   setupReportForms();
