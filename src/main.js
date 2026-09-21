@@ -1083,6 +1083,7 @@ async function setupDetailLaporan() {
   const reportId = urlParams.get("id");
   const container = document.getElementById("detail-content");
   const loading = document.getElementById("detail-loading");
+  const notifBox = document.getElementById("detail-notif");
 
   if (!container || !loading) return; // Hanya jalan di halaman detail
 
@@ -1164,13 +1165,13 @@ async function setupDetailLaporan() {
     // D1: Jika yang buka belum login -> Arahkan login
     if (!currentUserId) {
       actionHtml = `
-        <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-center border border-gray-200">
-          <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 text-primary-dark shadow-sm">
+        <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-left border border-gray-200">
+          <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm">
             <i data-feather="lock" class="w-6 h-6"></i>
           </div>
           <h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2>
           <p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk melihat potensi kecocokan atau mengajukan klaim atas barang ini.</p>
-          <a href="login.html" class="w-full block bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a>
+          <a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a>
         </div>
       `;
     }
@@ -1188,16 +1189,17 @@ async function setupDetailLaporan() {
         let matchItemsHtml = matches
           .map(
             (m) => `
-          <a href="detail-laporan.html?id=${m.found_report_id}" class="block bg-white border border-gray-200 p-4 rounded-xl hover:border-primary-dark transition mb-3">
+          <div class="bg-white border border-gray-200 p-4 rounded-xl mb-4 text-left">
             <div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div>
-            <div class="text-xs text-text-secondary">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div>
-          </a>
+            <div class="text-xs text-text-secondary mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div>
+            <a href="ajukan-klaim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a>
+          </div>
         `,
           )
           .join("");
 
         actionHtml = `
-          <div class="sticky top-24 bg-info-soft/30 border border-info-soft rounded-[24px] p-8 sm:p-10">
+          <div class="sticky top-24 bg-info-soft/30 border border-info-soft rounded-[24px] p-8 sm:p-10 text-left">
             <h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2>
             <p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>
             ${matchItemsHtml}
@@ -1205,10 +1207,10 @@ async function setupDetailLaporan() {
         `;
       } else {
         actionHtml = `
-          <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-center">
-            <i data-feather="search" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i>
+          <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left">
+            <i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i>
             <h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2>
-            <p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada barang temuan yang mirip masuk ke database.</p>
+            <p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang memiliki kecocokan dengan laporan kehilangan anda.</p>
           </div>
         `;
       }
@@ -1217,7 +1219,7 @@ async function setupDetailLaporan() {
     else if (!isLost && !isMyReport) {
       // Tombol untuk Ajukan Klaim
       actionHtml = `
-        <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200">
+        <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left">
           <h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2>
           <p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p>
           <a href="ajukan-klaim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a>
