@@ -948,12 +948,13 @@ async function setupDetailLaporan() {
     const actionPanel = document.getElementById("detail-action-panel");
     let actionHtml = "";
 
-    // PERBAIKAN UX: Warna merah text-danger agar kontras
+    // PERBAIKAN: Tombol Hapus dibuat lebih menonjol dengan background transparan merah
     const deleteBtnHtml =
       isMyReport && report.status === "active"
-        ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-danger bg-danger-soft/30 hover:bg-danger-soft font-semibold py-3 px-4 rounded-xl transition text-[13px] border border-red-100"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
+        ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-danger bg-danger-soft/50 hover:bg-danger-soft font-semibold py-2.5 px-4 rounded-xl transition text-[13px] border border-red-100"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
         : "";
 
+    /* KEMBALI KE UI AWAL YANG BERSIH DAN KONSISTEN DENGAN INDEX.HTML */
     if (!currentUserId) {
       actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-left border border-gray-200"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
     } else if (activeClaim && activeClaim.status === "completed") {
@@ -1050,10 +1051,7 @@ async function setupDetailLaporan() {
     } else if (!isLost && !isMyReport) {
       actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a></div>`;
     } else {
-      actionHtml = `<div class="hidden"></div>`;
-      document
-        .querySelector(".lg\\:col-span-2")
-        .classList.replace("lg:col-span-2", "lg:col-span-3");
+      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 border border-gray-200 text-center">${deleteBtnHtml}</div>`;
     }
 
     actionPanel.innerHTML = actionHtml;
