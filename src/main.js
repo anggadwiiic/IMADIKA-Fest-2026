@@ -13,7 +13,6 @@ async function checkAuthState() {
   const authContainer = document.getElementById("navbar-auth");
   const currentPage = window.location.pathname.split("/").pop() || "index.html";
 
-  // Sinkonisasi nama file 'ajukan-klaim.html' dengan huruf K
   const protectedPages = [
     "profil.html",
     "riwayat.html",
@@ -37,14 +36,25 @@ async function checkAuthState() {
     return;
   }
 
-  if (authContainer) {
-    const { data: profile } = await supabaseClient
+  // JIKA ADA SESI, KITA LAKUKAN VALIDASI GANDA KE DATABASE
+  if (authContainer && session) {
+    const { data: profile, error } = await supabaseClient
       .from("profiles")
       .select("full_name")
       .eq("id", session.user.id)
       .single();
 
-    const userName = profile?.full_name || session.user.email.split("@")[0];
+    // BUG FIX: Jika user di database sudah dihapus tapi sesi di browser masih nyangkut
+    if (error || !profile) {
+      console.warn(
+        "Sesi tidak valid atau user telah dihapus. Memaksa logout...",
+      );
+      await supabaseClient.auth.signOut();
+      window.location.href = "login.html";
+      return;
+    }
+
+    const userName = profile.full_name || session.user.email.split("@")[0];
     const initial = userName.charAt(0).toUpperCase();
 
     authContainer.innerHTML = `
