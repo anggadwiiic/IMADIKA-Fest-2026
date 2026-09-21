@@ -19,7 +19,7 @@ async function checkAuthState() {
     "lapor-hilang.html",
     "lapor-temuan.html",
     "tinjau-klaim.html",
-    "ajukan-klaim.html",
+    "ajukan-claim.html", // DIPERBARUI
   ];
 
   if (!session) {
@@ -125,11 +125,27 @@ function setupAuthForms() {
             .insert([{ id: data.user.id, full_name: name, email: email }]);
         }
 
-        alert("Pendaftaran berhasil! Silakan masuk.");
-        window.location.href = "login.html";
+        // Feedback UI tanpa alert
+        errorBox.classList.remove("hidden", "text-danger");
+        errorBox.classList.add(
+          "text-success",
+          "bg-success-soft",
+          "p-3",
+          "rounded-lg",
+        );
+        errorBox.innerText =
+          "Pendaftaran berhasil! Mengarahkan ke halaman masuk...";
+        setTimeout(() => (window.location.href = "login.html"), 2000);
       } catch (err) {
         errorBox.innerText = err.message || "Terjadi kesalahan saat mendaftar.";
-        errorBox.classList.remove("hidden");
+        errorBox.classList.remove(
+          "hidden",
+          "text-success",
+          "bg-success-soft",
+          "p-3",
+          "rounded-lg",
+        );
+        errorBox.classList.add("text-danger");
       } finally {
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = "<span>Daftar Sekarang</span>";
@@ -1192,7 +1208,7 @@ async function setupDetailLaporan() {
           <div class="bg-white border border-gray-200 p-4 rounded-xl mb-4 text-left">
             <div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div>
             <div class="text-xs text-text-secondary mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div>
-            <a href="ajukan-klaim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a>
+            <a href="ajukan-claim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a>
           </div>
         `,
           )
@@ -1222,7 +1238,7 @@ async function setupDetailLaporan() {
         <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left">
           <h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2>
           <p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p>
-          <a href="ajukan-klaim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a>
+          <a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a>
         </div>
       `;
     }
@@ -1245,8 +1261,6 @@ async function setupDetailLaporan() {
   }
 }
 
-// ... (Kode sebelum fungsi setupAjukanKlaim tetap sama)
-
 // ==========================================
 // 10. LOGIKA AJUKAN KLAIM (DINAMIS)
 // ==========================================
@@ -1258,7 +1272,7 @@ async function setupAjukanKlaim() {
   const notifBox = document.getElementById("klaim-notif");
   const fileInput = document.getElementById("klaim-foto");
 
-  if (!formKlaim || !targetSummary) return; // Hanya jalan di ajukan-klaim.html
+  if (!formKlaim || !targetSummary) return; // Hanya jalan di ajukan-claim.html
 
   if (!foundReportId) {
     targetSummary.innerHTML = `<div class="text-danger font-semibold">Error: ID Barang Temuan tidak valid.</div>`;
@@ -1411,20 +1425,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupRiwayatLaporan();
   loadRecentReports();
   setupDetailLaporan();
-  setupAjukanKlaim(); // <-- Panggil di sini
-});
-
-// ==========================================
-// INISIALISASI
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-  checkAuthState();
-  setupAuthForms();
-  loadMasterData();
-  setupReportForms();
-  setupDaftarLaporan();
-  setupProfilPage();
-  setupRiwayatLaporan();
-  loadRecentReports();
-  setupDetailLaporan();
+  setupAjukanKlaim();
 });
