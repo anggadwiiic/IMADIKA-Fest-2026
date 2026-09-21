@@ -80,15 +80,6 @@ async function checkAuthState() {
         await supabaseClient.auth.signOut();
         window.location.href = "login.html";
       });
-
-    if (currentPage === "profil.html") {
-      const namaInput = document.querySelector('input[value="Raka M."]');
-      const emailInput = document.querySelector(
-        'input[value="raka@upnjatim.ac.id"]',
-      );
-      if (namaInput) namaInput.value = userName;
-      if (emailInput) emailInput.value = session.user.email;
-    }
   }
 }
 
@@ -688,6 +679,9 @@ async function setupDaftarLaporan() {
 // ==========================================
 // 6. LOGIKA HALAMAN PROFIL
 // ==========================================
+// ==========================================
+// 6. LOGIKA HALAMAN PROFIL
+// ==========================================
 async function setupProfilPage() {
   const formProfil = document.getElementById("form-profil");
   if (!formProfil) return; // Hanya jalankan jika ada di halaman profil
@@ -695,9 +689,16 @@ async function setupProfilPage() {
   const fileInput = document.getElementById("profil-foto");
   const avatarImg = document.getElementById("avatar-image");
   const avatarInit = document.getElementById("avatar-initial");
+  const btnHapusAvatar = document.getElementById("btn-hapus-avatar");
   const waInput = document.getElementById("profil-wa");
   const btnSubmit = document.getElementById("btn-submit-profil");
   const notifBox = document.getElementById("profil-notif");
+
+  // Input Nama dan Email
+  const namaInput = document.getElementById("profil-nama");
+  const emailInput = document.getElementById("profil-email");
+
+  let isPhotoRemoved = false; // Flag penanda jika user klik Hapus Foto
 
   // A. Ambil Data Profil Saat Ini
   const {
@@ -712,7 +713,12 @@ async function setupProfilPage() {
     .single();
 
   if (profile) {
-    // Tampilkan WA (hapus awalan 0 atau 62 jika ada dari input lama)
+    // 1. Isi Nama dan Email
+    if (namaInput)
+      namaInput.value = profile.full_name || session.user.email.split("@")[0];
+    if (emailInput) emailInput.value = session.user.email;
+
+    // 2. Tampilkan WA
     if (profile.whatsapp) {
       let waStr = profile.whatsapp.toString();
       if (waStr.startsWith("0")) waStr = waStr.substring(1);
@@ -720,11 +726,12 @@ async function setupProfilPage() {
       waInput.value = waStr;
     }
 
-    // Tampilkan Foto
+    // 3. Tampilkan Foto
     if (profile.photo_url) {
       avatarImg.src = profile.photo_url;
       avatarImg.classList.remove("hidden");
       avatarInit.classList.add("hidden");
+      btnHapusAvatar.classList.remove("hidden");
     } else {
       avatarInit.innerText = (profile.full_name || session.user.email)
         .charAt(0)
@@ -732,19 +739,39 @@ async function setupProfilPage() {
     }
   }
 
-  // B. Preview Foto Lokal Sebelum Disimpan
+  // B. Preview Foto Lokal Saat Upload
   let newPhotoFile = null;
   fileInput.addEventListener("change", function () {
     const file = this.files[0];
     if (file) {
       newPhotoFile = file;
+      isPhotoRemoved = false; // Batalkan niat hapus jika upload baru
       avatarImg.src = URL.createObjectURL(file);
       avatarImg.classList.remove("hidden");
       avatarInit.classList.add("hidden");
+      btnHapusAvatar.classList.remove("hidden");
     }
   });
 
-  // C. Simpan Perubahan ke Supabase
+  // C. Tombol Hapus Foto (Tong Sampah)
+  btnHapusAvatar.addEventListener("click", function () {
+    if (
+      confirm(
+        "Hapus foto profil? Anda harus klik 'Simpan Perubahan' agar foto benar-benar terhapus.",
+      )
+    ) {
+      fileInput.value = ""; // Kosongkan input file
+      newPhotoFile = null;
+      isPhotoRemoved = true; // Tandai untuk dihapus di database
+
+      avatarImg.src = "";
+      avatarImg.classList.add("hidden");
+      btnHapusAvatar.classList.add("hidden");
+      avatarInit.classList.remove("hidden");
+    }
+  });
+
+  // D. Simpan Perubahan ke Supabase
   formProfil.addEventListener("submit", async (e) => {
     e.preventDefault();
     notifBox.classList.add("hidden");
@@ -754,14 +781,18 @@ async function setupProfilPage() {
     try {
       let finalPhotoUrl = profile.photo_url;
 
-      // 1. Jika ada foto baru, upload dulu ke bucket 'avatars'
-      if (newPhotoFile) {
+      // Jika user klik hapus foto, URL jadi null
+      if (isPhotoRemoved) {
+        finalPhotoUrl = null;
+      }
+      // Jika ada upload foto baru
+      else if (newPhotoFile) {
         const fileExt = newPhotoFile.name.split(".").pop();
         const fileName = `${session.user.id}_${Date.now()}.${fileExt}`;
 
         const { error: uploadErr } = await supabaseClient.storage
-          .from("avatars") // PASTIKAN BUCKET INI ADA DI SUPABASE
-          .upload(fileName, newPhotoFile);
+          .from("avatars")
+          .upload(fileName, newPhotoFile, { upsert: true });
 
         if (uploadErr) throw new Error("Gagal mengunggah foto profil.");
 
@@ -772,29 +803,28 @@ async function setupProfilPage() {
         finalPhotoUrl = publicUrlData.publicUrl;
       }
 
-      // 2. Format ulang WA (tambahkan 62 agar rapi)
+      // Format ulang WA
       let finalWa = waInput.value.trim();
       if (finalWa.startsWith("0")) finalWa = finalWa.substring(1);
       finalWa = "62" + finalWa;
 
-      // 3. Update tabel profiles
+      // Update tabel profiles
       const { error: updateErr } = await supabaseClient
         .from("profiles")
         .update({
-          whatsapp: finalWa, // Tipe datanya text sesuai database Anda
+          whatsapp: finalWa,
           photo_url: finalPhotoUrl,
         })
         .eq("id", session.user.id);
 
       if (updateErr) throw updateErr;
 
-      // Berhasil
+      // Notifikasi Berhasil (Snackbar)
       notifBox.innerText = "Profil berhasil diperbarui!";
       notifBox.className =
         "mb-6 p-4 rounded-xl text-sm font-semibold border bg-success-soft text-on-success-soft border-green-200 block";
 
-      // Update UI Navbar sedikit jika foto berubah
-      checkAuthState(); // Memanggil ulang agar foto di navbar (jika kita implementasikan nanti) ikut berubah
+      checkAuthState(); // Refresh nama/foto di navbar
     } catch (error) {
       notifBox.innerText = error.message || "Terjadi kesalahan saat menyimpan.";
       notifBox.className =
@@ -802,8 +832,7 @@ async function setupProfilPage() {
     } finally {
       btnSubmit.disabled = false;
       btnSubmit.innerText = "Simpan Perubahan";
-      // Hilangkan notif setelah 5 detik
-      setTimeout(() => notifBox.classList.add("hidden"), 5000);
+      setTimeout(() => notifBox.classList.add("hidden"), 4000);
     }
   });
 }
@@ -816,5 +845,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAuthForms();
   loadMasterData();
   setupReportForms();
-  setupDaftarLaporan(); // daftar laporan
+  setupDaftarLaporan();
+  setupProfilPage();
 });

@@ -47,12 +47,12 @@
           >
             <a
               href="lapor-hilang.html"
-              class="block px-5 py-3 text-text-primary font-medium hover:bg-gray-50 transition"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
               >Kehilangan Barang</a
             >
             <a
               href="lapor-temuan.html"
-              class="block px-5 py-3 text-text-primary font-medium hover:bg-gray-50 transition"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-surface transition"
               >Menemukan Barang</a
             >
           </div>
@@ -90,6 +90,7 @@
         </p>
       </div>
 
+      <!-- Snackbar / Notifikasi -->
       <div
         id="profil-notif"
         class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border"
@@ -100,12 +101,11 @@
         <div
           class="flex items-center gap-6 mb-10 pb-10 border-b border-gray-100"
         >
-          <!-- Area Foto -->
+          <!-- Area Foto dengan Icon Hapus -->
           <div
             id="avatar-preview-container"
-            class="w-24 h-24 rounded-full overflow-hidden bg-primary-soft border border-gray-200 shrink-0 relative"
+            class="w-24 h-24 rounded-full overflow-hidden bg-primary-soft border border-gray-200 shrink-0 relative group"
           >
-            <!-- Jika tidak ada foto, tampilkan inisial. Dirender dinamis oleh JS -->
             <div
               id="avatar-initial"
               class="w-full h-full flex items-center justify-center text-primary-dark font-bold text-3xl"
@@ -118,6 +118,16 @@
               alt="Foto Profil"
               class="hidden w-full h-full object-cover"
             />
+
+            <!-- Tombol Hapus (Overlay hitam akan muncul saat dihover) -->
+            <button
+              type="button"
+              id="btn-hapus-avatar"
+              class="hidden absolute inset-0 bg-black/50 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition focus:outline-none"
+              title="Hapus Foto"
+            >
+              <i data-feather="trash-2" class="w-6 h-6"></i>
+            </button>
           </div>
 
           <div>
@@ -173,7 +183,6 @@
               class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-medium"
               >+62</span
             >
-            <!-- Input teks biasa karena nomor WA bisa panjang dan diawali 0 yang akan diformat -->
             <input
               type="text"
               id="profil-wa"
@@ -266,36 +275,19 @@
     <script src="./src/main.js"></script>
     <script>
       feather.replace();
-
-      // Logika Dropdown Navbar
+      // Dropdown logika disederhanakan
       const dropdownBtn = document.getElementById("dropdown-btn");
       const dropdownMenu = document.getElementById("dropdown-menu");
       const dropdownIcon = document.getElementById("dropdown-icon");
 
       dropdownBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const isExpanded = dropdownMenu.classList.contains("opacity-100");
-        if (isExpanded) {
-          dropdownMenu.classList.remove(
-            "opacity-100",
-            "visible",
-            "translate-y-0",
-          );
-          dropdownMenu.classList.add(
-            "opacity-0",
-            "invisible",
-            "-translate-y-2",
-          );
-          dropdownIcon.classList.remove("rotate-180");
-        } else {
-          dropdownMenu.classList.remove(
-            "opacity-0",
-            "invisible",
-            "-translate-y-2",
-          );
-          dropdownMenu.classList.add("opacity-100", "visible", "translate-y-0");
-          dropdownIcon.classList.add("rotate-180");
-        }
+        dropdownMenu.classList.toggle("opacity-0");
+        dropdownMenu.classList.toggle("invisible");
+        dropdownMenu.classList.toggle("-translate-y-2");
+        dropdownMenu.classList.toggle("translate-y-0");
+        dropdownMenu.classList.toggle("opacity-100");
+        dropdownIcon.classList.toggle("rotate-180");
       });
 
       document.addEventListener("click", (e) => {
@@ -303,15 +295,15 @@
           !dropdownBtn.contains(e.target) &&
           !dropdownMenu.contains(e.target)
         ) {
-          dropdownMenu.classList.remove(
-            "opacity-100",
-            "visible",
-            "translate-y-0",
-          );
           dropdownMenu.classList.add(
             "opacity-0",
             "invisible",
             "-translate-y-2",
+          );
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
           );
           dropdownIcon.classList.remove("rotate-180");
         }
