@@ -1076,6 +1076,174 @@ async function loadRecentReports() {
 }
 
 // ==========================================
+// 9. LOGIKA DETAIL LAPORAN (DINAMIS)
+// ==========================================
+async function setupDetailLaporan() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const reportId = urlParams.get("id");
+  const container = document.getElementById("detail-content");
+  const loading = document.getElementById("detail-loading");
+
+  if (!container || !loading) return; // Hanya jalan di halaman detail
+
+  if (!reportId) {
+    loading.innerHTML = `<p class="text-danger font-semibold">Error: ID Laporan tidak ditemukan di URL.</p>`;
+    return;
+  }
+
+  try {
+    // A. Cek Session User
+    const {
+      data: { session },
+    } = await supabaseClient.auth.getSession();
+    const currentUserId = session ? session.user.id : null;
+
+    // B. Ambil Data Laporan + Profile Pelapor
+    const { data: report, error } = await supabaseClient
+      .from("reports")
+      .select(
+        `*, categories(name), locations(name), profiles:reporter_id(full_name, whatsapp)`,
+      )
+      .eq("id", reportId)
+      .single();
+
+    if (error || !report) throw new Error("Laporan tidak ditemukan.");
+
+    const isMyReport = currentUserId === report.reporter_id;
+    const isLost = report.type === "lost";
+
+    // C. Render Sisi Kiri (Data Laporan)
+    const fallbackImg =
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
+    document.getElementById("detail-foto").src =
+      report.photo_url || fallbackImg;
+    document.getElementById("detail-nama").innerText = report.item_name;
+    document.getElementById("detail-deskripsi").innerText =
+      report.description_public || "-";
+    document.getElementById("detail-kategori").innerText =
+      report.categories?.name || "Lainnya";
+
+    // Samarkan nama pelapor jika bukan milik sendiri
+    let pelaporName = report.profiles?.full_name || "Seseorang";
+    if (!isMyReport && pelaporName !== "Seseorang") {
+      const parts = pelaporName.split(" ");
+      pelaporName =
+        parts[0] + " " + (parts[1] ? parts[1].charAt(0) + "." : "***");
+    }
+    document.getElementById("detail-pelapor").innerText = isMyReport
+      ? `${report.profiles?.full_name} (Anda)`
+      : pelaporName;
+
+    const dateObj = new Date(report.event_at);
+    document.getElementById("detail-waktu").innerText =
+      dateObj.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }) + " WIB";
+
+    document.getElementById("detail-lokasi").innerText =
+      report.locations?.name || "Tidak diketahui";
+    document.getElementById("detail-lokasi-detail").innerText =
+      report.detail_location || "";
+
+    const badgeContainer = document.getElementById("detail-badges");
+    badgeContainer.innerHTML = `
+      <span class="w-2 h-2 rounded-full ${isLost ? "bg-danger" : "bg-success"}"></span>
+      <span class="text-xs font-bold ${isLost ? "text-danger" : "text-success"} uppercase tracking-wider">${isLost ? "Barang Hilang" : "Barang Ditemukan"}</span>
+      <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+      <span class="text-xs font-semibold text-text-secondary">${report.status === "active" ? "Laporan Aktif" : "Selesai"}</span>
+    `;
+
+    // D. Render Sisi Kanan (Panel Aksi)
+    const actionPanel = document.getElementById("detail-action-panel");
+    let actionHtml = "";
+
+    // D1: Jika yang buka belum login -> Arahkan login
+    if (!currentUserId) {
+      actionHtml = `
+        <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-center border border-gray-200">
+          <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 text-primary-dark shadow-sm">
+            <i data-feather="lock" class="w-6 h-6"></i>
+          </div>
+          <h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2>
+          <p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk melihat potensi kecocokan atau mengajukan klaim atas barang ini.</p>
+          <a href="login.html" class="w-full block bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a>
+        </div>
+      `;
+    }
+    // D2: Jika Laporan Kehilangan (LOST) & Pemilik Sendiri
+    else if (isLost && isMyReport) {
+      // Cek apakah ada di tabel matches
+      const { data: matches } = await supabaseClient
+        .from("matches")
+        .select(`*, found_report:found_report_id(item_name)`)
+        .eq("lost_report_id", report.id)
+        .order("total_score_internal", { ascending: false })
+        .limit(3);
+
+      if (matches && matches.length > 0) {
+        let matchItemsHtml = matches
+          .map(
+            (m) => `
+          <a href="detail-laporan.html?id=${m.found_report_id}" class="block bg-white border border-gray-200 p-4 rounded-xl hover:border-primary-dark transition mb-3">
+            <div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div>
+            <div class="text-xs text-text-secondary">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div>
+          </a>
+        `,
+          )
+          .join("");
+
+        actionHtml = `
+          <div class="sticky top-24 bg-info-soft/30 border border-info-soft rounded-[24px] p-8 sm:p-10">
+            <h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2>
+            <p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>
+            ${matchItemsHtml}
+          </div>
+        `;
+      } else {
+        actionHtml = `
+          <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-center">
+            <i data-feather="search" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i>
+            <h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2>
+            <p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada barang temuan yang mirip masuk ke database.</p>
+          </div>
+        `;
+      }
+    }
+    // D3: Jika Laporan Penemuan (FOUND) & BUKAN Pemilik Sendiri
+    else if (!isLost && !isMyReport) {
+      // Tombol untuk Ajukan Klaim
+      actionHtml = `
+        <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200">
+          <h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2>
+          <p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p>
+          <a href="ajukan-klaim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a>
+        </div>
+      `;
+    }
+    // D4: Skenario lain (Sembunyikan Panel)
+    else {
+      actionHtml = `<div class="hidden"></div>`;
+      document
+        .querySelector(".lg\\:col-span-2")
+        .classList.replace("lg:col-span-2", "lg:col-span-3"); // Perlebar panel kiri
+    }
+
+    actionPanel.innerHTML = actionHtml;
+
+    // Tampilkan Konten
+    loading.classList.add("hidden");
+    container.classList.remove("hidden");
+    if (typeof feather !== "undefined") feather.replace();
+  } catch (error) {
+    loading.innerHTML = `<p class="text-danger font-semibold border border-red-200 bg-danger-soft p-4 rounded-xl">${error.message}</p>`;
+  }
+}
+
+// ==========================================
 // INISIALISASI
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
@@ -1087,4 +1255,5 @@ document.addEventListener("DOMContentLoaded", () => {
   setupProfilPage();
   setupRiwayatLaporan();
   loadRecentReports();
+  setupDetailLaporan();
 });
