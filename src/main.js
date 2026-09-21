@@ -1256,11 +1256,14 @@ async function setupDetailLaporan() {
             </button>
           </div>`;
 
+        // Siapkan event listener untuk tombol Konfirmasi Selesai di Modal
         setTimeout(() => {
           const btnSelesai = document.getElementById("btn-confirm-selesai");
           if (btnSelesai) {
             btnSelesai.onclick = async () => {
               hideModal("modal-selesai");
+
+              // FIX UX: Otomatis scroll ke atas
               window.scrollTo({ top: 0, behavior: "smooth" });
 
               notifBox.classList.remove("hidden");
@@ -1269,20 +1272,33 @@ async function setupDetailLaporan() {
               notifBox.innerText = "Memproses penutupan laporan...";
 
               try {
+                // 1. Update status claim menjadi completed
                 await supabaseClient
                   .from("claims")
                   .update({ status: "completed" })
                   .eq("id", activeClaim.id);
-                await supabaseClient
-                  .from("reports")
-                  .update({ status: "completed" })
-                  .eq("id", reportId);
+
+                // 2. Update status laporan penemuan menjadi completed
+                if (activeClaim.found_report_id) {
+                  await supabaseClient
+                    .from("reports")
+                    .update({ status: "completed" })
+                    .eq("id", activeClaim.found_report_id);
+                }
+
+                // 3. Update status laporan kehilangan menjadi completed (jika ada)
+                if (activeClaim.lost_report_id) {
+                  await supabaseClient
+                    .from("reports")
+                    .update({ status: "completed" })
+                    .eq("id", activeClaim.lost_report_id);
+                }
 
                 notifBox.className =
                   "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
                 notifBox.innerText =
-                  "Laporan berhasil ditutup! Memuat ulang...";
-                setTimeout(() => window.location.reload(), 2000);
+                  "Serah terima berhasil diverifikasi. Seluruh laporan terkait telah ditutup!";
+                setTimeout(() => window.location.reload(), 2500);
               } catch (err) {
                 notifBox.className =
                   "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
