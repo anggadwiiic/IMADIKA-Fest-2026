@@ -11,7 +11,7 @@
   <body
     class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
   >
-    <!-- Navbar -->
+    <!-- Navbar (Sinkron 100%) -->
     <nav
       id="main-navbar"
       class="bg-white border-b border-gray-200 h-[80px] px-6 lg:px-12 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
@@ -21,8 +21,6 @@
         class="font-extrabold text-2xl text-primary-dark tracking-tight"
         >FOUNDEX</a
       >
-
-      <!-- Nav Links -->
       <div
         class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
       >
@@ -70,19 +68,10 @@
           >Riwayat Laporan</a
         >
       </div>
-
-      <div class="hidden lg:flex items-center gap-4" id="navbar-auth">
-        <a
-          href="register.html"
-          class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm"
-          >Daftar</a
-        >
-        <a
-          href="login.html"
-          class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm"
-          >Masuk</a
-        >
-      </div>
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth"></div>
+      <button class="lg:hidden text-gray-600 focus:outline-none">
+        <i data-feather="menu" class="w-6 h-6"></i>
+      </button>
     </nav>
 
     <!-- Main Content -->
@@ -93,6 +82,12 @@
       >
         <i data-feather="arrow-left" class="w-4 h-4"></i> Batal & Kembali
       </a>
+
+      <!-- Elemen Notifikasi (Snackbar) -->
+      <div
+        id="klaim-notif"
+        class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border"
+      ></div>
 
       <div class="mb-10">
         <h1
@@ -109,36 +104,15 @@
       <!-- Ringkasan Barang yang Diklaim -->
       <div
         class="bg-surface border border-gray-200 rounded-[16px] p-5 mb-10 flex items-center gap-4"
+        id="klaim-target-summary"
       >
-        <img
-          src="https://images.unsplash.com/photo-1593642632823-8f785ba67e45?ixlib=rb-4.0.3&w=200&q=80"
-          alt="Laptop"
-          class="w-20 h-20 object-cover rounded-xl shrink-0 bg-white border border-gray-100"
-        />
-        <div>
-          <div
-            class="text-[11px] font-bold text-success uppercase tracking-wider mb-1"
-          >
-            Barang Ditemukan
-          </div>
-          <h3 class="text-[16px] font-bold text-text-primary">
-            Laptop Hitam (merk ASUS)
-          </h3>
-          <div class="text-[13px] text-text-secondary mt-1">
-            Ruang Baca Perpustakaan &bull; 19 Sep 2026
-          </div>
-        </div>
+        <div class="text-sm text-gray-500">Memuat data barang...</div>
       </div>
 
-      <form
-        id="form-klaim"
-        class="space-y-8"
-        onsubmit="
-          event.preventDefault();
-          alert('Klaim berhasil diajukan!');
-          window.location.href = 'riwayat.html';
-        "
-      >
+      <form id="form-klaim" class="space-y-8 hidden">
+        <input type="hidden" id="klaim-found-id" />
+        <input type="hidden" id="klaim-lost-id" />
+
         <!-- Ciri Khusus -->
         <div>
           <label class="block text-sm font-semibold text-text-primary mb-2">
@@ -161,21 +135,23 @@
               Unggah Bukti Tambahan
               <span class="text-text-secondary font-normal">(Opsional)</span>
             </label>
-            <span class="text-sm text-text-secondary"
-              >JPG, PNG, PDF maks. 5MB</span
-            >
+            <span class="text-sm text-text-secondary">JPG, PNG maks. 5MB</span>
           </div>
 
           <div
-            class="border-2 border-dashed border-gray-200 rounded-[16px] p-8 flex flex-col items-center justify-center text-center hover:bg-surface transition cursor-pointer group bg-white"
+            class="border-2 border-dashed border-gray-200 rounded-[16px] p-8 flex flex-col items-center justify-center text-center hover:bg-surface transition cursor-pointer group bg-white relative"
           >
             <div
               class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center text-text-secondary mb-4 group-hover:text-primary-dark transition border border-gray-100 shadow-sm"
+              id="klaim-upload-icon"
             >
               <i data-feather="upload-cloud" class="w-5 h-5"></i>
             </div>
-            <h4 class="text-base font-bold text-text-primary mb-1">
-              Klik untuk mengunggah atau seret file ke sini
+            <h4
+              id="klaim-file-name"
+              class="text-base font-bold text-text-primary mb-1"
+            >
+              Klik untuk mengunggah bukti foto
             </h4>
             <p class="text-sm text-text-secondary mb-2">
               Nota pembelian, foto lama barang, atau kardus kemasan.
@@ -183,8 +159,8 @@
             <input
               type="file"
               id="klaim-foto"
-              class="hidden"
-              accept="image/*,.pdf"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              accept="image/*"
             />
           </div>
         </div>
@@ -207,7 +183,7 @@
       </form>
     </main>
 
-    <!-- Footer Standar (Full) -->
+    <!-- Footer Standar (Sinkron 100%) -->
     <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
@@ -228,17 +204,15 @@
               <i
                 data-feather="map-pin"
                 class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span
-                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Surabaya</span
-              >
+              ></i
+              ><span>UPN "Veteran" Jawa Timur, Surabaya</span>
             </div>
             <div class="flex items-center gap-3">
               <i
                 data-feather="mail"
                 class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span>humas@upnjatim.ac.id</span>
+              ></i
+              ><span>humas@upnjatim.ac.id</span>
             </div>
           </div>
         </div>
@@ -273,41 +247,19 @@
     <script src="./src/main.js"></script>
     <script>
       feather.replace();
-
-      const navbar = document.getElementById("main-navbar");
-      window.addEventListener("scroll", () => {
-        if (window.scrollY > 10) navbar.classList.add("shadow-md");
-        else navbar.classList.remove("shadow-md");
-      });
-
+      // Dropdown Navbar Logic
       const dropdownBtn = document.getElementById("dropdown-btn");
       const dropdownMenu = document.getElementById("dropdown-menu");
       const dropdownIcon = document.getElementById("dropdown-icon");
 
       dropdownBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const isExpanded = dropdownMenu.classList.contains("opacity-100");
-        if (isExpanded) {
-          dropdownMenu.classList.remove(
-            "opacity-100",
-            "visible",
-            "translate-y-0",
-          );
-          dropdownMenu.classList.add(
-            "opacity-0",
-            "invisible",
-            "-translate-y-2",
-          );
-          dropdownIcon.classList.remove("rotate-180");
-        } else {
-          dropdownMenu.classList.remove(
-            "opacity-0",
-            "invisible",
-            "-translate-y-2",
-          );
-          dropdownMenu.classList.add("opacity-100", "visible", "translate-y-0");
-          dropdownIcon.classList.add("rotate-180");
-        }
+        dropdownMenu.classList.toggle("opacity-0");
+        dropdownMenu.classList.toggle("invisible");
+        dropdownMenu.classList.toggle("-translate-y-2");
+        dropdownMenu.classList.toggle("translate-y-0");
+        dropdownMenu.classList.toggle("opacity-100");
+        dropdownIcon.classList.toggle("rotate-180");
       });
 
       document.addEventListener("click", (e) => {
@@ -315,15 +267,15 @@
           !dropdownBtn.contains(e.target) &&
           !dropdownMenu.contains(e.target)
         ) {
-          dropdownMenu.classList.remove(
-            "opacity-100",
-            "visible",
-            "translate-y-0",
-          );
           dropdownMenu.classList.add(
             "opacity-0",
             "invisible",
             "-translate-y-2",
+          );
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
           );
           dropdownIcon.classList.remove("rotate-180");
         }

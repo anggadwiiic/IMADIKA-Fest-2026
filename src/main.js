@@ -1245,6 +1245,175 @@ async function setupDetailLaporan() {
   }
 }
 
+// ... (Kode sebelum fungsi setupAjukanKlaim tetap sama)
+
+// ==========================================
+// 10. LOGIKA AJUKAN KLAIM (DINAMIS)
+// ==========================================
+async function setupAjukanKlaim() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const foundReportId = urlParams.get("id");
+  const formKlaim = document.getElementById("form-klaim");
+  const targetSummary = document.getElementById("klaim-target-summary");
+  const notifBox = document.getElementById("klaim-notif");
+  const fileInput = document.getElementById("klaim-foto");
+
+  if (!formKlaim || !targetSummary) return; // Hanya jalan di ajukan-klaim.html
+
+  if (!foundReportId) {
+    targetSummary.innerHTML = `<div class="text-danger font-semibold">Error: ID Barang Temuan tidak valid.</div>`;
+    return;
+  }
+
+  try {
+    const {
+      data: { session },
+    } = await supabaseClient.auth.getSession();
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    // A. Ambil data barang temuan
+    const { data: foundReport, error: fetchErr } = await supabaseClient
+      .from("reports")
+      .select("*, locations(name)")
+      .eq("id", foundReportId)
+      .eq("type", "found")
+      .single();
+
+    if (fetchErr || !foundReport)
+      throw new Error("Data laporan temuan tidak ditemukan.");
+
+    // Mencegah klaim barang sendiri
+    if (foundReport.reporter_id === session.user.id) {
+      targetSummary.innerHTML = `<div class="text-danger font-semibold">Anda tidak bisa mengklaim barang yang Anda temukan sendiri.</div>`;
+      return;
+    }
+
+    // B. Tampilkan Ringkasan Barang
+    const dateObj = new Date(foundReport.event_at);
+    const dateStr = dateObj.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const fallbackImg =
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
+
+    targetSummary.innerHTML = `
+      <img src="${foundReport.photo_url || fallbackImg}" alt="Barang" class="w-20 h-20 object-cover rounded-xl shrink-0 bg-white border border-gray-100" />
+      <div>
+        <div class="text-[11px] font-bold text-success uppercase tracking-wider mb-1">Barang Ditemukan</div>
+        <h3 class="text-[16px] font-bold text-text-primary">${foundReport.item_name}</h3>
+        <div class="text-[13px] text-text-secondary mt-1">${foundReport.locations?.name || "Lokasi tidak diketahui"} &bull; ${dateStr}</div>
+      </div>
+    `;
+
+    // Cari tahu apakah user ini punya laporan kehilangan yang cocok (untuk di-link ke klaim)
+    const { data: myLostReports } = await supabaseClient
+      .from("reports")
+      .select("id")
+      .eq("reporter_id", session.user.id)
+      .eq("type", "lost")
+      .eq("category_id", foundReport.category_id)
+      .limit(1);
+
+    const lostReportIdToLink =
+      myLostReports && myLostReports.length > 0 ? myLostReports[0].id : null;
+
+    formKlaim.classList.remove("hidden");
+
+    // Preview nama file bukti
+    fileInput.addEventListener("change", function () {
+      const fileNameDisplay = document.getElementById("klaim-file-name");
+      if (this.files[0]) {
+        fileNameDisplay.innerText = this.files[0].name;
+        fileNameDisplay.classList.add("text-primary-dark");
+      }
+    });
+
+    // C. Proses Submit Klaim
+    formKlaim.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      notifBox.classList.add("hidden");
+      const btnSubmit = document.getElementById("btn-submit-klaim");
+      btnSubmit.disabled = true;
+      btnSubmit.innerText = "Mengirim...";
+
+      try {
+        let evidenceUrl = null;
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          const fileExt = file.name.split(".").pop();
+          const fileName = `klaim_${session.user.id}_${Date.now()}.${fileExt}`;
+
+          const { error: uploadErr } = await supabaseClient.storage
+            .from("item_photos")
+            .upload(fileName, file);
+          if (uploadErr) throw new Error("Gagal mengunggah foto bukti.");
+
+          const { data: publicUrlData } = supabaseClient.storage
+            .from("item_photos")
+            .getPublicUrl(fileName);
+          evidenceUrl = publicUrlData.publicUrl;
+        }
+
+        const ciriText = document.getElementById("klaim-ciri").value.trim();
+
+        // Insert ke tabel claims
+        const { error: insertErr } = await supabaseClient
+          .from("claims")
+          .insert([
+            {
+              found_report_id: foundReport.id,
+              lost_report_id: lostReportIdToLink,
+              claimant_id: session.user.id,
+              special_detail_private: ciriText,
+              evidence_url_private: evidenceUrl,
+              status: "pending",
+            },
+          ]);
+
+        if (insertErr) throw insertErr;
+
+        // Feedback Sukses (Tanpa Alert)
+        notifBox.innerText =
+          "Klaim berhasil diajukan! Mengarahkan ke Riwayat...";
+        notifBox.className =
+          "mb-6 p-4 rounded-xl text-sm font-semibold border bg-success-soft text-on-success-soft border-green-200 block";
+
+        setTimeout(() => (window.location.href = "riwayat.html"), 2000);
+      } catch (err) {
+        notifBox.innerText =
+          err.message || "Terjadi kesalahan saat mengajukan klaim.";
+        notifBox.className =
+          "mb-6 p-4 rounded-xl text-sm font-semibold border bg-danger-soft text-on-danger-soft border-red-200 block";
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = "Kirim Pengajuan Klaim";
+      }
+    });
+  } catch (err) {
+    targetSummary.innerHTML = `<div class="text-danger font-semibold">${err.message}</div>`;
+  }
+}
+
+// ==========================================
+// INISIALISASI
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  checkAuthState();
+  setupAuthForms();
+  loadMasterData();
+  setupReportForms();
+  setupDaftarLaporan();
+  setupProfilPage();
+  setupRiwayatLaporan();
+  loadRecentReports();
+  setupDetailLaporan();
+  setupAjukanKlaim(); // <-- Panggil di sini
+});
+
 // ==========================================
 // INISIALISASI
 // ==========================================
