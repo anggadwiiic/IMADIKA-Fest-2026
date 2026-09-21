@@ -201,7 +201,6 @@ function setupReportForms() {
   const formHilang = document.getElementById("form-lapor-hilang"),
     formTemuan = document.getElementById("form-lapor-temuan"),
     dateInput = document.getElementById("lap-tanggal");
-
   if (dateInput) {
     const today = new Date().toISOString().split("T")[0];
     dateInput.max = today;
@@ -273,7 +272,11 @@ async function submitReport(type, formElement, errorBoxId, btnId) {
       .eq("id", session.user.id)
       .single();
     if (profileErr) throw new Error("Gagal memeriksa profil pengguna.");
-    if (!profileCheck.whatsapp || profileCheck.whatsapp.trim() === "")
+    if (
+      !profileCheck.whatsapp ||
+      String(profileCheck.whatsapp).trim() === "" ||
+      String(profileCheck.whatsapp).trim() === "62"
+    )
       throw new Error(
         "PENTING: Harap lengkapi nomor WhatsApp Anda di halaman Profil terlebih dahulu sebelum membuat laporan, agar Anda dapat dihubungi.",
       );
@@ -427,13 +430,13 @@ async function setupDaftarLaporan() {
     }
     gridContainer.innerHTML = data
       .map((report) => {
-        const isLost = report.type === "lost";
-        const formattedDate = new Date(report.event_at).toLocaleDateString(
-          "id-ID",
-          { day: "numeric", month: "short", year: "numeric" },
-        );
-        const fallbackImg =
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
+        const isLost = report.type === "lost",
+          formattedDate = new Date(report.event_at).toLocaleDateString(
+            "id-ID",
+            { day: "numeric", month: "short", year: "numeric" },
+          ),
+          fallbackImg =
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
         return `<div class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col transition-all duration-300 hover:-translate-y-2 hover:shadow-md shadow-sm"><div class="flex items-center gap-1.5 mb-3"><span class="w-2 h-2 rounded-full ${isLost ? "bg-danger" : "bg-success"}"></span><span class="text-xs font-bold ${isLost ? "text-danger" : "text-success"} uppercase tracking-wider">${isLost ? "Barang Hilang" : "Barang Ditemukan"}</span></div><img src="${report.photo_url || fallbackImg}" alt="${report.item_name}" class="w-full h-44 object-cover rounded-xl mb-5 bg-surface" /><h3 class="text-lg font-bold text-text-primary truncate mb-3">${report.item_name}</h3><div class="flex items-center gap-2 text-xs text-gray-500 mb-2"><i data-feather="tag" class="w-3.5 h-3.5"></i> ${report.categories?.name || "Lainnya"}</div><div class="flex items-center gap-2 text-xs text-gray-500 mb-2"><i data-feather="map-pin" class="w-3.5 h-3.5"></i> ${report.locations?.name || "Tidak diketahui"}</div><div class="flex items-center gap-2 text-xs text-gray-500 mb-4"><i data-feather="calendar" class="w-3.5 h-3.5"></i> ${formattedDate}</div><p class="text-xs text-gray-500 line-clamp-2 mb-6 leading-relaxed">${report.description_public || "-"}</p><a href="detail-laporan.html?id=${report.id}" class="mt-auto w-full border border-gray-200 text-text-primary font-semibold py-2.5 rounded-xl text-center hover:border-primary-dark hover:text-primary-dark transition text-sm block">Lihat Detail</a></div>`;
       })
       .join("");
@@ -684,7 +687,6 @@ async function setupProfilPage() {
         .update({ whatsapp: finalWa, photo_url: finalPhotoUrl })
         .eq("id", session.user.id);
       if (updateErr) throw updateErr;
-
       notifBox.innerText = "Profil berhasil diperbarui!";
       notifBox.className =
         "mb-6 p-4 rounded-xl text-sm font-semibold border bg-success-soft text-on-success-soft border-green-200 block";
@@ -948,17 +950,20 @@ async function setupDetailLaporan() {
     const actionPanel = document.getElementById("detail-action-panel");
     let actionHtml = "";
 
-    // PERBAIKAN: Tombol Hapus dibuat lebih menonjol dengan background transparan merah
+    // SHADOW INDEX 0 16 32 UNTUK TOMBOL HAPUS (Kini tampil lebih mencolok)
     const deleteBtnHtml =
       isMyReport && report.status === "active"
-        ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-danger bg-danger-soft/50 hover:bg-danger-soft font-semibold py-2.5 px-4 rounded-xl transition text-[13px] border border-red-100"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
+        ? `<button onclick="showModal('modal-hapus')" class="mt-6 w-full flex items-center justify-center gap-2 text-white bg-danger hover:bg-red-700 font-semibold py-3 px-4 rounded-xl transition text-sm shadow-[0_16px_32px_0px_rgba(0,0,0,0.15)]"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
         : "";
 
-    /* KEMBALI KE UI AWAL YANG BERSIH DAN KONSISTEN DENGAN INDEX.HTML */
+    // SHADOW INDEX 0 16 32 UNTUK PANEL AKSI KANAN
+    const panelStyle =
+      "sticky top-24 bg-white rounded-[24px] p-8 sm:p-10 text-left border border-gray-100 shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)]";
+
     if (!currentUserId) {
-      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-left border border-gray-200"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
+      actionHtml = `<div class="${panelStyle}"><div class="w-12 h-12 bg-surface rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
     } else if (activeClaim && activeClaim.status === "completed") {
-      actionHtml = `<div class="sticky top-24 bg-success-soft/30 border border-success-soft rounded-[24px] p-8 sm:p-10 text-center"><i data-feather="check-circle" class="w-10 h-10 text-success mx-auto mb-4"></i><h2 class="text-[20px] font-bold text-text-primary mb-2">Telah Dikembalikan</h2><p class="text-[14px] text-text-secondary">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p></div>`;
+      actionHtml = `<div class="${panelStyle} text-center"><i data-feather="check-circle" class="w-10 h-10 text-success mx-auto mb-4"></i><h2 class="text-[20px] font-bold text-text-primary mb-2">Telah Dikembalikan</h2><p class="text-[14px] text-text-secondary">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p></div>`;
     } else if (activeClaim && activeClaim.status === "approved") {
       let contactProfile = null,
         contactRole = "",
@@ -981,13 +986,12 @@ async function setupDetailLaporan() {
       }
 
       if (contactProfile) {
-        const waSvg = `<svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>`;
-        const waNumber = contactProfile.whatsapp;
-        const waAction = waNumber
-          ? `href="https://wa.me/${waNumber}" target="_blank"`
+        const waAction = contactProfile.whatsapp
+          ? `href="https://wa.me/${contactProfile.whatsapp}" target="_blank"`
           : `href="#" onclick="document.getElementById('detail-notif').classList.remove('hidden'); document.getElementById('detail-notif').className='mb-6 p-4 rounded-xl text-sm font-semibold border block bg-warning-soft text-on-warning-soft border-yellow-200'; document.getElementById('detail-notif').innerText='Peringatan: Pengguna ini belum mencantumkan nomor WhatsApp.'; return false;"`;
 
-        actionHtml = `<div class="sticky top-24 bg-primary-soft/30 border border-primary-soft rounded-[24px] p-8 sm:p-10 text-left"><h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2><p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p><div class="bg-white p-5 rounded-xl border border-gray-200 mb-6 shadow-sm"><div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div><div class="font-semibold text-text-primary mb-4 text-[16px]">${contactProfile.full_name || "Tidak ada nama"}</div><a ${waAction} style="background-color: #25D366;" class="flex items-center justify-center gap-2 w-full text-white font-semibold py-3 px-4 rounded-xl transition-opacity hover:opacity-90 text-[14px] shadow-sm">${waSvg} Hubungi Sekarang</a></div><p class="text-[13px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p><button onclick="openModalSelesai('${modalDescText}')" class="w-full bg-surface border border-gray-200 hover:bg-gray-200 text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">Tandai Selesai</button></div>`;
+        // UI KONTAK & TOMBOL WA (Disesuaikan dengan tema)
+        actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2><p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p><div class="bg-surface p-5 rounded-xl border border-gray-200 mb-6"><div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div><div class="font-bold text-text-primary mb-4 text-lg">${contactProfile.full_name || "Tidak ada nama"}</div><a ${waAction} class="flex items-center justify-center gap-2 w-full bg-success hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition text-[14px] shadow-sm"><i data-feather="message-circle" class="w-4 h-4"></i> Hubungi via WhatsApp</a></div><p class="text-[13px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p><button onclick="openModalSelesai('${modalDescText}')" class="w-full bg-white border border-gray-200 hover:bg-surface text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">Tandai Selesai</button></div>`;
 
         setTimeout(() => {
           const btnSelesai = document.getElementById("btn-confirm-selesai");
@@ -1028,7 +1032,7 @@ async function setupDetailLaporan() {
           }
         }, 500);
       } else {
-        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-center"><i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Laporan Dikunci</h2><p class="text-sm text-text-secondary">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p></div>`;
+        actionHtml = `<div class="${panelStyle} text-center"><i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Laporan Dikunci</h2><p class="text-sm text-text-secondary">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p></div>`;
       }
     } else if (isLost && isMyReport) {
       const { data: matches } = await supabaseClient
@@ -1041,17 +1045,20 @@ async function setupDetailLaporan() {
         let matchItemsHtml = matches
           .map(
             (m) =>
-              `<div class="bg-white border border-gray-200 p-4 rounded-xl mb-4 text-left"><div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div><div class="text-xs text-text-secondary mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div><a href="ajukan-claim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a></div>`,
+              `<div class="bg-surface border border-gray-200 p-4 rounded-xl mb-4 text-left"><div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div><div class="text-xs text-text-secondary mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div><a href="ajukan-claim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a></div>`,
           )
           .join("");
-        actionHtml = `<div class="sticky top-24 bg-info-soft/30 border border-info-soft rounded-[24px] p-8 sm:p-10 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2><p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>${matchItemsHtml}${deleteBtnHtml}</div>`;
+        actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2><p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>${matchItemsHtml}${deleteBtnHtml}</div>`;
       } else {
-        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p>${deleteBtnHtml}</div>`;
+        actionHtml = `<div class="${panelStyle}"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p>${deleteBtnHtml}</div>`;
       }
     } else if (!isLost && !isMyReport) {
-      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a></div>`;
+      actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a></div>`;
     } else {
-      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 border border-gray-200 text-center">${deleteBtnHtml}</div>`;
+      actionHtml = `<div class="sticky top-24 bg-transparent p-0 text-center">${deleteBtnHtml}</div>`;
+      document
+        .querySelector(".lg\\:col-span-2")
+        .classList.replace("lg:col-span-2", "lg:col-span-3");
     }
 
     actionPanel.innerHTML = actionHtml;
@@ -1173,7 +1180,11 @@ async function setupAjukanKlaim() {
           .eq("id", session.user.id)
           .single();
         if (profileErr) throw new Error("Gagal memeriksa profil pengguna.");
-        if (!profileCheck.whatsapp || profileCheck.whatsapp.trim() === "")
+        if (
+          !profileCheck.whatsapp ||
+          String(profileCheck.whatsapp).trim() === "" ||
+          String(profileCheck.whatsapp).trim() === "62"
+        )
           throw new Error(
             "PENTING: Harap lengkapi nomor WhatsApp Anda di halaman Profil terlebih dahulu sebelum mengajukan klaim.",
           );

@@ -11,7 +11,6 @@
   <body
     class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
   >
-    <!-- Navbar (Disinkronkan dengan index.html) -->
     <nav
       id="main-navbar"
       class="h-[80px] px-6 lg:px-12 bg-background border-b border-gray-100 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
@@ -74,7 +73,6 @@
       </button>
     </nav>
 
-    <!-- Main Content -->
     <main class="max-w-[1200px] mx-auto px-6 lg:px-12 py-10 flex-grow w-full">
       <a
         href="javascript:history.back()"
@@ -83,7 +81,6 @@
         <i data-feather="arrow-left" class="w-4 h-4"></i> Kembali
       </a>
 
-      <!-- Snackbar Notifikasi -->
       <div
         id="detail-notif"
         class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border"
@@ -96,10 +93,10 @@
         id="detail-content"
         class="grid grid-cols-1 lg:grid-cols-3 gap-12 hidden"
       >
-        <!-- KOLOM KIRI: INFO BARANG -->
         <div class="lg:col-span-2">
+          <!-- SHADOW INDEX 0 16 32 PADA GAMBAR -->
           <div
-            class="w-full h-[300px] sm:h-[400px] rounded-[24px] overflow-hidden bg-surface mb-8 border border-gray-200"
+            class="w-full h-[300px] sm:h-[400px] rounded-[24px] overflow-hidden bg-surface mb-8 border border-gray-100 shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)]"
           >
             <img
               id="detail-foto"
@@ -191,12 +188,10 @@
           </div>
         </div>
 
-        <!-- KOLOM KANAN: PANEL AKSI (Dirender JS) -->
         <div class="lg:col-span-1" id="detail-action-panel"></div>
       </div>
     </main>
 
-    <!-- Modal Konfirmasi Selesai -->
     <div
       id="modal-selesai"
       class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
@@ -236,7 +231,6 @@
       </div>
     </div>
 
-    <!-- Modal Konfirmasi Hapus -->
     <div
       id="modal-hapus"
       class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
@@ -272,7 +266,6 @@
       </div>
     </div>
 
-    <!-- Footer -->
     <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
