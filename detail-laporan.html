@@ -116,7 +116,7 @@
           <!-- Header & Badge Status -->
           <div class="mb-10">
             <div class="flex items-center gap-2.5 mb-3" id="detail-badges">
-              <!-- Akan diisi JS (Contoh: Barang Hilang / Ditemukan) -->
+              <!-- Akan diisi JS -->
             </div>
             <h1
               id="detail-nama"
@@ -207,12 +207,50 @@
 
         <!-- KOLOM KANAN: PANEL AKSI (Dirender JS) -->
         <div class="lg:col-span-1" id="detail-action-panel">
-          <!-- Widget dinamis (Potensi Kecocokan, Klaim, WA) akan dirender ke sini -->
+          <!-- Widget dinamis akan dirender ke sini -->
         </div>
       </div>
     </main>
 
-    <!-- Footer (Sinkron 100%) -->
+    <!-- Modal Konfirmasi Selesai -->
+    <div
+      id="modal-selesai"
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
+    >
+      <div
+        class="bg-white rounded-[24px] p-8 max-w-md w-full shadow-2xl transform scale-95 transition-transform duration-300"
+        id="modal-selesai-content"
+      >
+        <div
+          class="w-12 h-12 rounded-full bg-success-soft text-success flex items-center justify-center mb-5"
+        >
+          <i data-feather="check-circle" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-text-primary mb-2">
+          Tandai Selesai?
+        </h3>
+        <p class="text-sm text-text-secondary leading-relaxed mb-8">
+          Apakah Anda yakin barang ini sudah berhasil diserahterimakan kepada
+          pemilik yang sah? Laporan akan ditutup dan tidak dapat diubah lagi.
+        </p>
+        <div class="flex gap-3">
+          <button
+            onclick="hideModal('modal-selesai')"
+            class="flex-1 bg-surface text-text-primary hover:bg-gray-200 font-semibold py-3 rounded-xl transition text-sm focus:outline-none"
+          >
+            Belum
+          </button>
+          <button
+            id="btn-confirm-selesai"
+            class="flex-1 bg-success hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition text-sm shadow-sm focus:outline-none"
+          >
+            Ya, Sudah Selesai
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Standar (Sinkron 100%) -->
     <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
@@ -276,7 +314,7 @@
     <script src="./src/main.js"></script>
     <script>
       feather.replace();
-      // Dropdown Logic (Sinkron)
+
       const dropdownBtn = document.getElementById("dropdown-btn");
       const dropdownMenu = document.getElementById("dropdown-menu");
       const dropdownIcon = document.getElementById("dropdown-icon");
@@ -309,6 +347,29 @@
           dropdownIcon.classList.remove("rotate-180");
         }
       });
+
+      // Fungsi UI Modal
+      function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const content = document.getElementById(modalId + "-content");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        setTimeout(() => {
+          modal.classList.remove("opacity-0");
+          content.classList.remove("scale-95");
+        }, 10);
+      }
+
+      function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        const content = document.getElementById(modalId + "-content");
+        modal.classList.add("opacity-0");
+        content.classList.add("scale-95");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+        }, 300);
+      }
     </script>
   </body>
 </html>

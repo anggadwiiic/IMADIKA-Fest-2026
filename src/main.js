@@ -1101,7 +1101,7 @@ async function setupDetailLaporan() {
   const loading = document.getElementById("detail-loading");
   const notifBox = document.getElementById("detail-notif");
 
-  if (!container || !loading) return; // Hanya jalan di halaman detail
+  if (!container || !loading) return;
 
   if (!reportId) {
     loading.innerHTML = `<p class="text-danger font-semibold">Error: ID Laporan tidak ditemukan di URL.</p>`;
@@ -1109,13 +1109,12 @@ async function setupDetailLaporan() {
   }
 
   try {
-    // A. Cek Session User
     const {
       data: { session },
     } = await supabaseClient.auth.getSession();
     const currentUserId = session ? session.user.id : null;
 
-    // B. Ambil Data Laporan + Profile Pelapor
+    // Ambil Data Laporan Utama
     const { data: report, error } = await supabaseClient
       .from("reports")
       .select(
@@ -1129,7 +1128,20 @@ async function setupDetailLaporan() {
     const isMyReport = currentUserId === report.reporter_id;
     const isLost = report.type === "lost";
 
-    // C. Render Sisi Kiri (Data Laporan)
+    // Cek apakah ada klaim yang sudah di-ACC (approved) atau selesai (completed) untuk laporan ini
+    const { data: claimsData } = await supabaseClient
+      .from("claims")
+      .select(
+        "*, claimant:claimant_id(full_name, whatsapp), found_report:found_report_id(reporter_id)",
+      )
+      .or(`found_report_id.eq.${reportId},lost_report_id.eq.${reportId}`)
+      .in("status", ["approved", "completed"])
+      .limit(1);
+
+    const activeClaim =
+      claimsData && claimsData.length > 0 ? claimsData[0] : null;
+
+    // Render Sisi Kiri (Info Barang)
     const fallbackImg =
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YXUigGfVdNtNMxlAAs6CnJnRW3qUR0I86vaIWN9YuyqfTX3NCpCLhI_-&s=10";
     document.getElementById("detail-foto").src =
@@ -1140,7 +1152,6 @@ async function setupDetailLaporan() {
     document.getElementById("detail-kategori").innerText =
       report.categories?.name || "Lainnya";
 
-    // Samarkan nama pelapor jika bukan milik sendiri
     let pelaporName = report.profiles?.full_name || "Seseorang";
     if (!isMyReport && pelaporName !== "Seseorang") {
       const parts = pelaporName.split(" ");
@@ -1160,47 +1171,147 @@ async function setupDetailLaporan() {
         hour: "2-digit",
         minute: "2-digit",
       }) + " WIB";
-
     document.getElementById("detail-lokasi").innerText =
       report.locations?.name || "Tidak diketahui";
     document.getElementById("detail-lokasi-detail").innerText =
       report.detail_location || "";
 
-    const badgeContainer = document.getElementById("detail-badges");
-    badgeContainer.innerHTML = `
+    // Logika Status Badge
+    let statusBadgeText =
+      report.status === "active" ? "Laporan Aktif" : "Selesai";
+    let statusBadgeColor = "bg-gray-300 text-text-secondary";
+    if (activeClaim && activeClaim.status === "completed") {
+      statusBadgeText = "Telah Dikembalikan";
+      statusBadgeColor = "bg-success text-white px-2 py-0.5 rounded";
+    }
+
+    document.getElementById("detail-badges").innerHTML = `
       <span class="w-2 h-2 rounded-full ${isLost ? "bg-danger" : "bg-success"}"></span>
       <span class="text-xs font-bold ${isLost ? "text-danger" : "text-success"} uppercase tracking-wider">${isLost ? "Barang Hilang" : "Barang Ditemukan"}</span>
       <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-      <span class="text-xs font-semibold text-text-secondary">${report.status === "active" ? "Laporan Aktif" : "Selesai"}</span>
+      <span class="text-xs font-semibold ${statusBadgeColor}">${statusBadgeText}</span>
     `;
 
-    // D. Render Sisi Kanan (Panel Aksi)
+    // Render Sisi Kanan (Panel Aksi)
     const actionPanel = document.getElementById("detail-action-panel");
     let actionHtml = "";
 
-    // D1: Jika yang buka belum login -> Arahkan login
     if (!currentUserId) {
+      // Belum Login
       actionHtml = `
         <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-left border border-gray-200">
-          <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm">
-            <i data-feather="lock" class="w-6 h-6"></i>
-          </div>
+          <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div>
           <h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2>
-          <p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk melihat potensi kecocokan atau mengajukan klaim atas barang ini.</p>
+          <p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p>
           <a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a>
-        </div>
-      `;
+        </div>`;
+    } else if (activeClaim && activeClaim.status === "completed") {
+      // Jika Barang Sudah Selesai Dikembalikan
+      actionHtml = `
+        <div class="sticky top-24 bg-success-soft/30 border border-success-soft rounded-[24px] p-8 sm:p-10 text-center">
+          <i data-feather="check-circle" class="w-10 h-10 text-success mx-auto mb-4"></i>
+          <h2 class="text-[20px] font-bold text-text-primary mb-2">Telah Dikembalikan</h2>
+          <p class="text-[14px] text-text-secondary">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p>
+        </div>`;
+    } else if (activeClaim && activeClaim.status === "approved") {
+      // Jika Klaim Disetujui (Sedang Proses Pengembalian)
+      // Tentukan apakah user ini berhak melihat kontak
+      let contactProfile = null;
+      let contactRole = "";
+
+      if (currentUserId === activeClaim.found_report?.reporter_id) {
+        // Yang buka adalah Penemu, tampilkan kontak Pemilik
+        contactProfile = activeClaim.claimant;
+        contactRole = "Pemilik Barang";
+      } else if (currentUserId === activeClaim.claimant_id) {
+        // Yang buka adalah Pemilik, tampilkan kontak Penemu
+        // Kita harus fetch profil penemu
+        const { data: finderProf } = await supabaseClient
+          .from("profiles")
+          .select("full_name, whatsapp")
+          .eq("id", activeClaim.found_report.reporter_id)
+          .single();
+        contactProfile = finderProf;
+        contactRole = "Penemu Barang";
+      }
+
+      if (contactProfile) {
+        const waLink = contactProfile.whatsapp
+          ? `https://wa.me/${contactProfile.whatsapp}`
+          : "#";
+        actionHtml = `
+          <div class="sticky top-24 bg-primary-soft/30 border border-primary-soft rounded-[24px] p-8 sm:p-10 text-left">
+            <h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2>
+            <p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p>
+            
+            <div class="bg-white p-4 rounded-xl border border-gray-200 mb-6">
+              <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div>
+              <div class="font-semibold text-text-primary mb-3">${contactProfile.full_name || "Tidak ada nama"}</div>
+              <a href="${waLink}" target="_blank" class="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
+                <i data-feather="message-circle" class="w-4 h-4"></i> Hubungi via WhatsApp
+              </a>
+            </div>
+            
+            <p class="text-[12px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p>
+            <button onclick="showModal('modal-selesai')" class="w-full bg-surface border border-gray-200 hover:bg-gray-200 text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">
+              Tandai Selesai
+            </button>
+          </div>`;
+
+        // Siapkan event listener untuk tombol Konfirmasi Selesai di Modal
+        setTimeout(() => {
+          const btnSelesai = document.getElementById("btn-confirm-selesai");
+          if (btnSelesai) {
+            btnSelesai.onclick = async () => {
+              hideModal("modal-selesai");
+              notifBox.classList.remove("hidden");
+              notifBox.className =
+                "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-info-soft text-on-info-soft border-blue-200";
+              notifBox.innerText = "Memproses penutupan laporan...";
+
+              try {
+                // 1. Update status claim
+                await supabaseClient
+                  .from("claims")
+                  .update({ status: "completed" })
+                  .eq("id", activeClaim.id);
+                // 2. Update status report
+                await supabaseClient
+                  .from("reports")
+                  .update({ status: "completed" })
+                  .eq("id", reportId);
+
+                notifBox.className =
+                  "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
+                notifBox.innerText =
+                  "Laporan berhasil ditutup! Memuat ulang...";
+                setTimeout(() => window.location.reload(), 2000);
+              } catch (err) {
+                notifBox.className =
+                  "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
+                notifBox.innerText = "Gagal menutup laporan: " + err.message;
+              }
+            };
+          }
+        }, 500);
+      } else {
+        // Jika orang lain yang melihat barang yang sudah diklaim
+        actionHtml = `
+          <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-center">
+            <i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i>
+            <h2 class="text-lg font-bold text-text-primary mb-2">Laporan Dikunci</h2>
+            <p class="text-sm text-text-secondary">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p>
+          </div>`;
+      }
     }
-    // D2: Jika Laporan Kehilangan (LOST) & Pemilik Sendiri
+    // D2: Skenario Potensi Kecocokan (LOST & Pemilik Sendiri)
     else if (isLost && isMyReport) {
-      // Cek apakah ada di tabel matches
       const { data: matches } = await supabaseClient
         .from("matches")
         .select(`*, found_report:found_report_id(item_name)`)
         .eq("lost_report_id", report.id)
         .order("total_score_internal", { ascending: false })
         .limit(3);
-
       if (matches && matches.length > 0) {
         let matchItemsHtml = matches
           .map(
@@ -1209,50 +1320,37 @@ async function setupDetailLaporan() {
             <div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div>
             <div class="text-xs text-text-secondary mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div>
             <a href="ajukan-claim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a>
-          </div>
-        `,
+          </div>`,
           )
           .join("");
-
         actionHtml = `
           <div class="sticky top-24 bg-info-soft/30 border border-info-soft rounded-[24px] p-8 sm:p-10 text-left">
             <h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2>
             <p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>
             ${matchItemsHtml}
-          </div>
-        `;
+          </div>`;
       } else {
-        actionHtml = `
-          <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left">
-            <i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i>
-            <h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2>
-            <p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang memiliki kecocokan dengan laporan kehilangan anda.</p>
-          </div>
-        `;
+        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p></div>`;
       }
     }
-    // D3: Jika Laporan Penemuan (FOUND) & BUKAN Pemilik Sendiri
+    // D3: Skenario Ajukan Klaim (FOUND & BUKAN Pemilik Sendiri)
     else if (!isLost && !isMyReport) {
-      // Tombol untuk Ajukan Klaim
       actionHtml = `
         <div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left">
           <h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2>
           <p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p>
           <a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a>
-        </div>
-      `;
+        </div>`;
     }
-    // D4: Skenario lain (Sembunyikan Panel)
+    // D4: Skenario lain
     else {
       actionHtml = `<div class="hidden"></div>`;
       document
         .querySelector(".lg\\:col-span-2")
-        .classList.replace("lg:col-span-2", "lg:col-span-3"); // Perlebar panel kiri
+        .classList.replace("lg:col-span-2", "lg:col-span-3");
     }
 
     actionPanel.innerHTML = actionHtml;
-
-    // Tampilkan Konten
     loading.classList.add("hidden");
     container.classList.remove("hidden");
     if (typeof feather !== "undefined") feather.replace();
