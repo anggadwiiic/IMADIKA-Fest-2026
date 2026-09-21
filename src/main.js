@@ -686,6 +686,129 @@ async function setupDaftarLaporan() {
 }
 
 // ==========================================
+// 6. LOGIKA HALAMAN PROFIL
+// ==========================================
+async function setupProfilPage() {
+  const formProfil = document.getElementById("form-profil");
+  if (!formProfil) return; // Hanya jalankan jika ada di halaman profil
+
+  const fileInput = document.getElementById("profil-foto");
+  const avatarImg = document.getElementById("avatar-image");
+  const avatarInit = document.getElementById("avatar-initial");
+  const waInput = document.getElementById("profil-wa");
+  const btnSubmit = document.getElementById("btn-submit-profil");
+  const notifBox = document.getElementById("profil-notif");
+
+  // A. Ambil Data Profil Saat Ini
+  const {
+    data: { session },
+  } = await supabaseClient.auth.getSession();
+  if (!session) return;
+
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
+
+  if (profile) {
+    // Tampilkan WA (hapus awalan 0 atau 62 jika ada dari input lama)
+    if (profile.whatsapp) {
+      let waStr = profile.whatsapp.toString();
+      if (waStr.startsWith("0")) waStr = waStr.substring(1);
+      if (waStr.startsWith("62")) waStr = waStr.substring(2);
+      waInput.value = waStr;
+    }
+
+    // Tampilkan Foto
+    if (profile.photo_url) {
+      avatarImg.src = profile.photo_url;
+      avatarImg.classList.remove("hidden");
+      avatarInit.classList.add("hidden");
+    } else {
+      avatarInit.innerText = (profile.full_name || session.user.email)
+        .charAt(0)
+        .toUpperCase();
+    }
+  }
+
+  // B. Preview Foto Lokal Sebelum Disimpan
+  let newPhotoFile = null;
+  fileInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (file) {
+      newPhotoFile = file;
+      avatarImg.src = URL.createObjectURL(file);
+      avatarImg.classList.remove("hidden");
+      avatarInit.classList.add("hidden");
+    }
+  });
+
+  // C. Simpan Perubahan ke Supabase
+  formProfil.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    notifBox.classList.add("hidden");
+    btnSubmit.disabled = true;
+    btnSubmit.innerText = "Menyimpan...";
+
+    try {
+      let finalPhotoUrl = profile.photo_url;
+
+      // 1. Jika ada foto baru, upload dulu ke bucket 'avatars'
+      if (newPhotoFile) {
+        const fileExt = newPhotoFile.name.split(".").pop();
+        const fileName = `${session.user.id}_${Date.now()}.${fileExt}`;
+
+        const { error: uploadErr } = await supabaseClient.storage
+          .from("avatars") // PASTIKAN BUCKET INI ADA DI SUPABASE
+          .upload(fileName, newPhotoFile);
+
+        if (uploadErr) throw new Error("Gagal mengunggah foto profil.");
+
+        const { data: publicUrlData } = supabaseClient.storage
+          .from("avatars")
+          .getPublicUrl(fileName);
+
+        finalPhotoUrl = publicUrlData.publicUrl;
+      }
+
+      // 2. Format ulang WA (tambahkan 62 agar rapi)
+      let finalWa = waInput.value.trim();
+      if (finalWa.startsWith("0")) finalWa = finalWa.substring(1);
+      finalWa = "62" + finalWa;
+
+      // 3. Update tabel profiles
+      const { error: updateErr } = await supabaseClient
+        .from("profiles")
+        .update({
+          whatsapp: finalWa, // Tipe datanya text sesuai database Anda
+          photo_url: finalPhotoUrl,
+        })
+        .eq("id", session.user.id);
+
+      if (updateErr) throw updateErr;
+
+      // Berhasil
+      notifBox.innerText = "Profil berhasil diperbarui!";
+      notifBox.className =
+        "mb-6 p-4 rounded-xl text-sm font-semibold border bg-success-soft text-on-success-soft border-green-200 block";
+
+      // Update UI Navbar sedikit jika foto berubah
+      checkAuthState(); // Memanggil ulang agar foto di navbar (jika kita implementasikan nanti) ikut berubah
+    } catch (error) {
+      notifBox.innerText = error.message || "Terjadi kesalahan saat menyimpan.";
+      notifBox.className =
+        "mb-6 p-4 rounded-xl text-sm font-semibold border bg-danger-soft text-on-danger-soft border-red-200 block";
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.innerText = "Simpan Perubahan";
+      // Hilangkan notif setelah 5 detik
+      setTimeout(() => notifBox.classList.add("hidden"), 5000);
+    }
+  });
+}
+
+// ==========================================
 // INISIALISASI
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
