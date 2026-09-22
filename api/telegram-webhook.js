@@ -1,11 +1,11 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
+const { createClient } = require("@supabase/supabase-js");
+
+module.exports = async (req, res) => {
+  if (req.method !== "POST")
     return res.status(405).json({ error: "Method Not Allowed" });
-  }
 
   try {
     const { message } = req.body;
-
     if (message && message.text && message.text.startsWith("/start ")) {
       const chatId = message.chat.id;
       const userId = message.text.split(" ")[1];
@@ -30,24 +30,17 @@ export default async function handler(req, res) {
 
       let replyText =
         "Sukses! Akun FOUNDEX Anda telah terhubung. Anda akan menerima notifikasi otomatis saat ada kecocokan barang.";
-      if (!updateRes.ok) {
-        replyText =
-          "Maaf, terjadi kesalahan saat menghubungkan akun. Pastikan Anda menekan link dari dalam web FOUNDEX.";
-      }
+      if (!updateRes.ok)
+        replyText = "Maaf, terjadi kesalahan saat menghubungkan akun.";
 
       await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: replyText,
-        }),
+        body: JSON.stringify({ chat_id: chatId, text: replyText }),
       });
     }
-
     return res.status(200).send("OK");
   } catch (error) {
-    console.error("Webhook Error:", error);
     return res.status(500).send("Internal Server Error");
   }
-}
+};

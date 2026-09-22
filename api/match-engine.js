@@ -1,5 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
+const { createClient } = require("@supabase/supabase-js");
 
+// Fungsi Pembantu: Cosine Similarity untuk Teks (Deskripsi)
 function getCosineSimilarity(str1, str2) {
   if (!str1 || !str2) return 0;
   const getTokens = (str) => str.toLowerCase().match(/\w+/g) || [];
@@ -18,7 +19,13 @@ function getCosineSimilarity(str1, str2) {
   return dotProduct / (mag1 * mag2);
 }
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
+  // Cegah CORS issue jika dipanggil dari browser
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
   try {
@@ -30,10 +37,9 @@ export default async function handler(req, res) {
     }
 
     const newReport = payload.record;
-    console.log("Menerima Webhook untuk Laporan:", newReport?.id);
+    console.log("Menerima Webhook Laporan:", newReport?.id);
 
     if (!newReport || newReport.status !== "active") {
-      console.log("Ignored: Bukan record aktif atau payload kosong.");
       return res.status(200).send("Ignored");
     }
 
@@ -51,13 +57,12 @@ export default async function handler(req, res) {
       .eq("status", "active");
 
     if (error) {
-      console.error("Supabase Query Error:", error);
-      return res.status(500).send("Database Error");
+      console.error("Query Error:", error);
+      return res.status(500).send("DB Error");
     }
 
     if (!candidates || candidates.length === 0) {
-      console.log("Tidak ada kandidat lawan jenis dengan kategori yang sama.");
-      return res.status(200).send("No candidates");
+      return res.status(200).send("No match");
     }
 
     const newReportDate = new Date(newReport.event_at);
@@ -81,29 +86,22 @@ export default async function handler(req, res) {
         0.3 * catScore + 0.25 * locScore + 0.2 * timeScore + 0.25 * textScore;
 
       let supportCount = 0;
-      const isLocMatch = locScore > 0;
-      const isTimeClose = timeScore >= 0.5;
-      const isTextSimilar = textScore >= 0.2;
+      if (locScore > 0) supportCount++;
+      if (timeScore >= 0.5) supportCount++;
+      if (textScore >= 0.2) supportCount++;
 
-      if (isLocMatch) supportCount++;
-      if (isTimeClose) supportCount++;
-      if (isTextSimilar) supportCount++;
-
-      console.log(
-        `Skor Evaluasi ID ${candidate.id} | Total: ${totalScore.toFixed(3)} | Support: ${supportCount}`,
-      );
+      console.log(`Skor: ${totalScore} | Support: ${supportCount}`);
 
       if (totalScore >= 0.6 && supportCount >= 2) {
-        console.log("Kecocokan VALID. Memproses database & notifikasi...");
         const lostId = newReport.type === "lost" ? newReport.id : candidate.id;
         const foundId =
           newReport.type === "found" ? newReport.id : candidate.id;
 
         const reasonsJson = {
           support_count: supportCount,
-          is_location_match: isLocMatch,
-          is_time_close: isTimeClose,
-          is_description_similar: isTextSimilar,
+          is_location_match: locScore > 0,
+          is_time_close: timeScore >= 0.5,
+          is_description_similar: textScore >= 0.2,
           time_diff_days: diffDays,
         };
 
@@ -139,17 +137,13 @@ export default async function handler(req, res) {
           },
         ]);
 
+        // Push Notif Telegram
         const { data: lostProfile } = await supabase
           .from("profiles")
           .select("telegram_chat_id")
           .eq("id", lostReporterId)
           .single();
-
         if (lostProfile && lostProfile.telegram_chat_id) {
-          console.log(
-            "Mengirim Telegram ke chat ID:",
-            lostProfile.telegram_chat_id,
-          );
           const tgUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
           const tgMsg = `Halo! Terdapat laporan penemuan barang pada website FOUNDEX.\n\nSistem menemukan potensi kecocokan dengan tingkat kemiripan ${(totalScore * 100).toFixed(0)}% untuk laporan *${itemNameStr}* Anda.\n\nCek sekarang di:\nhttps://foundexweb.vercel.app/detail-laporan.html?id=${lostId}`;
 
@@ -159,16 +153,14 @@ export default async function handler(req, res) {
             body: JSON.stringify({
               chat_id: lostProfile.telegram_chat_id,
               text: tgMsg,
-              parse_mode: "Markdown",
             }),
           });
         }
       }
     }
-
     return res.status(200).send("Processed");
   } catch (error) {
-    console.error("Match Engine Error:", error);
+    console.error(error);
     return res.status(500).send("Error");
   }
-}
+};
