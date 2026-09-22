@@ -20,23 +20,23 @@ async function checkAuthState() {
   const authContainer = document.getElementById("navbar-auth");
   const mobileAuthContainer = document.getElementById("mobile-navbar-auth");
 
-  // Perbaikan parsing URL untuk menghindari error query params (?id=...) atau hash (#)
-  let currentPage = window.location.pathname.split("/").pop() || "index.html";
-  currentPage = currentPage.split("?")[0].split("#")[0];
+  // FIX: Mengatasi Clean URLs dari Vercel dengan menghapus ekstensi .html untuk pengecekan
+  let rawPage = window.location.pathname.split("/").pop() || "index";
+  let currentPage = rawPage.split("?")[0].split("#")[0].replace(".html", "");
 
   const protectedPages = [
-    "profil.html",
-    "riwayat.html",
-    "lapor-hilang.html",
-    "lapor-temuan.html",
-    "tinjau-klaim.html",
-    "ajukan-claim.html",
+    "profil",
+    "riwayat",
+    "lapor-hilang",
+    "lapor-temuan",
+    "tinjau-klaim",
+    "ajukan-claim",
   ];
 
   if (!session) {
     if (protectedPages.includes(currentPage)) {
       window.location.replace("login.html");
-      return false; // Berhenti eksekusi jika tidak auth
+      return false;
     }
 
     if (authContainer)
