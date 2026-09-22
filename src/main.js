@@ -1846,4 +1846,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupDetailLaporan();
   setupAjukanKlaim();
   setupTinjauKlaim();
+  setupNotifikasiPage();
 });
