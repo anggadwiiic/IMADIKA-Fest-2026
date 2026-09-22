@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 
-/* FUNGSI COSINE SIMILARITY */
 function getCosineSimilarity(str1, str2) {
   if (!str1 || !str2) return 0;
   const getTokens = (str) => str.toLowerCase().match(/\w+/g) || [];
@@ -23,9 +22,20 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
 
   try {
-    const newReport = req.body.record;
-    if (!newReport || newReport.status !== "active")
+    let payload = req.body;
+    if (typeof payload === "string") {
+      try {
+        payload = JSON.parse(payload);
+      } catch (e) {}
+    }
+
+    const newReport = payload.record;
+    console.log("Menerima Webhook untuk Laporan:", newReport?.id);
+
+    if (!newReport || newReport.status !== "active") {
+      console.log("Ignored: Bukan record aktif atau payload kosong.");
       return res.status(200).send("Ignored");
+    }
 
     const supabase = createClient(
       process.env.SUPABASE_URL,
@@ -40,7 +50,15 @@ export default async function handler(req, res) {
       .eq("category_id", newReport.category_id)
       .eq("status", "active");
 
-    if (error || !candidates) return res.status(200).send("No candidates");
+    if (error) {
+      console.error("Supabase Query Error:", error);
+      return res.status(500).send("Database Error");
+    }
+
+    if (!candidates || candidates.length === 0) {
+      console.log("Tidak ada kandidat lawan jenis dengan kategori yang sama.");
+      return res.status(200).send("No candidates");
+    }
 
     const newReportDate = new Date(newReport.event_at);
     const newText = `${newReport.item_name} ${newReport.description_public || ""}`;
@@ -71,7 +89,12 @@ export default async function handler(req, res) {
       if (isTimeClose) supportCount++;
       if (isTextSimilar) supportCount++;
 
+      console.log(
+        `Skor Evaluasi ID ${candidate.id} | Total: ${totalScore.toFixed(3)} | Support: ${supportCount}`,
+      );
+
       if (totalScore >= 0.6 && supportCount >= 2) {
+        console.log("Kecocokan VALID. Memproses database & notifikasi...");
         const lostId = newReport.type === "lost" ? newReport.id : candidate.id;
         const foundId =
           newReport.type === "found" ? newReport.id : candidate.id;
@@ -84,18 +107,21 @@ export default async function handler(req, res) {
           time_diff_days: diffDays,
         };
 
-        await supabase.from("matches").insert([
-          {
-            lost_report_id: lostId,
-            found_report_id: foundId,
-            category_score: catScore,
-            location_score: locScore,
-            time_score: timeScore.toFixed(2),
-            description_score: textScore.toFixed(2),
-            total_score_internal: totalScore.toFixed(3),
-            reasons_json: reasonsJson,
-          },
-        ]);
+        await supabase.from("matches").upsert(
+          [
+            {
+              lost_report_id: lostId,
+              found_report_id: foundId,
+              category_score: catScore,
+              location_score: locScore,
+              time_score: timeScore.toFixed(2),
+              description_score: textScore.toFixed(2),
+              total_score_internal: totalScore.toFixed(3),
+              reasons_json: reasonsJson,
+            },
+          ],
+          { onConflict: "lost_report_id, found_report_id" },
+        );
 
         const lostReporterId =
           newReport.type === "lost"
@@ -120,6 +146,10 @@ export default async function handler(req, res) {
           .single();
 
         if (lostProfile && lostProfile.telegram_chat_id) {
+          console.log(
+            "Mengirim Telegram ke chat ID:",
+            lostProfile.telegram_chat_id,
+          );
           const tgUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
           const tgMsg = `Halo! Terdapat laporan penemuan barang pada website FOUNDEX.\n\nSistem menemukan potensi kecocokan dengan tingkat kemiripan ${(totalScore * 100).toFixed(0)}% untuk laporan *${itemNameStr}* Anda.\n\nCek sekarang di:\nhttps://foundexweb.vercel.app/detail-laporan.html?id=${lostId}`;
 
