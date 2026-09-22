@@ -964,6 +964,58 @@ async function setupProfilPage() {
         .charAt(0)
         .toUpperCase();
     }
+
+    // RENDER UI TELEGRAM
+    const tgActionContainer = document.getElementById(
+      "telegram-action-container",
+    );
+    const tgStatusText = document.getElementById("telegram-status-text");
+
+    if (tgActionContainer && tgStatusText) {
+      if (profile.telegram_chat_id) {
+        tgStatusText.innerHTML = `<span class="text-success font-semibold flex items-center gap-1"><i data-feather="check-circle" class="w-3.5 h-3.5"></i> Terhubung</span> Akun Telegram Anda telah aktif menerima notifikasi.`;
+        tgActionContainer.innerHTML = `<button type="button" id="btn-disconnect-tg" class="bg-white border border-danger text-danger hover:bg-danger-soft font-semibold py-2 px-4 rounded-lg transition text-[13px] shadow-sm">Putuskan Koneksi</button>`;
+
+        // Logika Putuskan Koneksi Telegram
+        document
+          .getElementById("btn-disconnect-tg")
+          .addEventListener("click", async () => {
+            if (
+              confirm(
+                "Anda tidak akan lagi menerima notifikasi kecocokan barang via Telegram. Lanjutkan?",
+              )
+            ) {
+              notifBox.classList.remove("hidden");
+              notifBox.className =
+                "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-info-soft text-on-info-soft border-blue-200";
+              notifBox.innerText = "Memutuskan koneksi...";
+              scrollToElement("profil-notif");
+              try {
+                await supabaseClient
+                  .from("profiles")
+                  .update({ telegram_chat_id: null })
+                  .eq("id", session.user.id);
+                notifBox.className =
+                  "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
+                notifBox.innerText =
+                  "Koneksi Telegram berhasil diputus. Memuat ulang halaman...";
+                setTimeout(() => window.location.reload(), 1500);
+              } catch (e) {
+                notifBox.className =
+                  "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
+                notifBox.innerText = "Gagal memutus koneksi: " + e.message;
+              }
+            }
+          });
+      } else {
+        tgStatusText.innerHTML = `Hubungkan Telegram untuk menerima pemberitahuan instan saat ada potensi kecocokan barang.`;
+        // Deep link ke Bot dengan parameter user_id
+        const botUsername = "foundex_web_bot";
+        const tgLink = `https://t.me/${botUsername}?start=${session.user.id}`;
+        tgActionContainer.innerHTML = `<a href="${tgLink}" target="_blank" class="bg-[#2AABEE] hover:opacity-90 text-white font-semibold py-2.5 px-5 rounded-xl transition text-[14px] shadow-sm whitespace-nowrap block text-center">Hubungkan Telegram</a>`;
+      }
+      if (typeof feather !== "undefined") feather.replace();
+    }
   }
 
   let newPhotoFile = null;

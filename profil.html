@@ -22,8 +22,6 @@
         class="font-extrabold text-2xl text-primary-dark tracking-tight"
         >FOUNDEX</a
       >
-
-      <!-- Nav Links (Desktop) -->
       <div
         class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
       >
@@ -71,11 +69,7 @@
           >Riwayat Laporan</a
         >
       </div>
-
-      <!-- Auth CTA (Desktop) -->
       <div class="hidden lg:flex items-center gap-4" id="navbar-auth"></div>
-
-      <!-- Mobile Menu Button -->
       <button
         id="mobile-menu-btn"
         class="lg:hidden text-gray-600 focus:outline-none"
@@ -84,13 +78,11 @@
       </button>
     </nav>
 
-    <!-- Mobile Sidebar Menu Overlay -->
+    <!-- Mobile Sidebar -->
     <div
       id="mobile-sidebar-overlay"
       class="fixed inset-0 bg-black/50 z-[60] hidden opacity-0 transition-opacity duration-300"
     ></div>
-
-    <!-- Mobile Sidebar Content -->
     <div
       id="mobile-sidebar"
       class="fixed top-0 right-0 h-full w-64 bg-white z-[70] shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
@@ -128,10 +120,9 @@
       <div
         class="p-6 border-t border-gray-100 flex flex-col gap-3"
         id="mobile-navbar-auth"
-      >
-        <!-- Auth state mobile akan disuntikkan ke sini via JS -->
-      </div>
+      ></div>
     </div>
+
     <!-- Main Content -->
     <main class="max-w-[700px] mx-auto px-6 py-12 flex-grow w-full">
       <div class="mb-10">
@@ -146,7 +137,6 @@
         </p>
       </div>
 
-      <!-- Snackbar / Notifikasi -->
       <div
         id="profil-notif"
         class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border"
@@ -157,7 +147,6 @@
         <div
           class="flex items-center gap-6 mb-10 pb-10 border-b border-gray-100"
         >
-          <!-- Area Foto dengan Icon Hapus -->
           <div
             id="avatar-preview-container"
             class="w-24 h-24 rounded-full overflow-hidden bg-primary-soft border border-gray-200 shrink-0 relative group"
@@ -174,8 +163,6 @@
               alt="Foto Profil"
               class="hidden w-full h-full object-cover"
             />
-
-            <!-- Tombol Hapus (Overlay hitam akan muncul saat dihover) -->
             <button
               type="button"
               id="btn-hapus-avatar"
@@ -185,7 +172,6 @@
               <i data-feather="trash-2" class="w-6 h-6"></i>
             </button>
           </div>
-
           <div>
             <label
               for="profil-foto"
@@ -231,9 +217,9 @@
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-text-primary mb-2">
-            Nomor WhatsApp <span class="text-danger">*</span>
-          </label>
+          <label class="block text-sm font-semibold text-text-primary mb-2"
+            >Nomor WhatsApp <span class="text-danger">*</span></label
+          >
           <div class="relative">
             <span
               class="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-medium"
@@ -248,12 +234,61 @@
             />
           </div>
           <p class="text-[13px] text-text-secondary mt-2">
-            Format: 81234xxx (tanpa awalan 0). Nomor ini hanya akan dibagikan
-            kepada pengguna lain ketika proses klaim barang telah disetujui.
+            Format: 81234xxx (tanpa awalan 0). Nomor ini hanya dibagikan ketika
+            proses klaim disetujui.
           </p>
         </div>
 
-        <div class="pt-2 flex justify-end">
+        <!-- TELEGRAM INTEGRATION UI -->
+        <div class="pt-6 border-t border-gray-100">
+          <label class="block text-sm font-semibold text-text-primary mb-2"
+            >Notifikasi Telegram
+            <span class="text-text-secondary font-normal"
+              >(Opsional)</span
+            ></label
+          >
+          <div
+            class="bg-surface border border-gray-200 rounded-[16px] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <svg
+                  class="w-5 h-5 text-[#2AABEE] fill-current"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.198-.054-.31-.346-.116l-6.4 4.02-2.76-.86c-.6-.188-.61-.6.126-.89l10.814-4.17c.502-.18.943.118.746.857z"
+                  />
+                </svg>
+                <span class="font-bold text-text-primary text-[15px]"
+                  >Push Notifications</span
+                >
+              </div>
+              <p
+                class="text-[13px] text-text-secondary"
+                id="telegram-status-text"
+              >
+                Hubungkan Telegram untuk menerima pemberitahuan instan saat ada
+                potensi kecocokan barang.
+              </p>
+            </div>
+
+            <div
+              id="telegram-action-container"
+              class="shrink-0 flex items-center justify-start sm:justify-end"
+            >
+              <button
+                type="button"
+                class="bg-gray-200 text-gray-400 font-semibold py-2 px-4 rounded-lg cursor-not-allowed text-sm"
+              >
+                Memuat...
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-6 flex justify-end">
           <button
             type="submit"
             id="btn-submit-profil"
@@ -265,7 +300,7 @@
       </form>
     </main>
 
-    <!-- Footer (Sinkron 100%) -->
+    <!-- Footer -->
     <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
       <div
         class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
@@ -281,44 +316,6 @@
             Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
             yang terintegrasi
           </p>
-          <div class="flex flex-col gap-4 text-sm text-gray-400">
-            <div class="flex items-start gap-3">
-              <i
-                data-feather="map-pin"
-                class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span
-                >UPN "Veteran" Jawa Timur, Jalan Rungkut Madya, Surabaya</span
-              >
-            </div>
-            <div class="flex items-center gap-3">
-              <i
-                data-feather="mail"
-                class="w-5 h-5 text-primary-dark shrink-0"
-              ></i>
-              <span>humas@upnjatim.ac.id</span>
-            </div>
-          </div>
-        </div>
-        <div class="hidden lg:block lg:col-span-3"></div>
-        <div class="md:col-span-3 lg:col-span-2">
-          <h4 class="font-bold mb-6 text-white text-base">Quick Links</h4>
-          <ul class="flex flex-col gap-3 text-sm text-gray-400">
-            <li>
-              <a href="index.html" class="hover:text-white transition"
-                >Beranda</a
-              >
-            </li>
-            <li><a href="#" class="hover:text-white transition">FAQ</a></li>
-          </ul>
-        </div>
-        <div class="md:col-span-3 lg:col-span-2">
-          <h4 class="font-bold mb-6 text-white text-base">Social Media</h4>
-          <div class="flex gap-4">
-            <a href="#" class="text-gray-400 hover:text-white transition"
-              ><i data-feather="instagram" class="w-5 h-5"></i
-            ></a>
-          </div>
         </div>
       </div>
       <div
@@ -331,7 +328,6 @@
     <script src="./src/main.js"></script>
     <script>
       feather.replace();
-      // Dropdown logika disederhanakan
       const dropdownBtn = document.getElementById("dropdown-btn");
       const dropdownMenu = document.getElementById("dropdown-menu");
       const dropdownIcon = document.getElementById("dropdown-icon");
@@ -345,7 +341,6 @@
         dropdownMenu.classList.toggle("opacity-100");
         dropdownIcon.classList.toggle("rotate-180");
       });
-
       document.addEventListener("click", (e) => {
         if (
           !dropdownBtn.contains(e.target) &&
