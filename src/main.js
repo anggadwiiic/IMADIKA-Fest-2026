@@ -3,6 +3,15 @@ const SUPABASE_URL = "https://lkirrwcajisknzshdxop.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_0KCurhCXb3YEFDeXTRw-OQ_kefVS921";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* HELPER SCROLL */
+function scrollToElement(elementId) {
+  const el = document.getElementById(elementId);
+  if (el && !el.classList.contains("hidden")) {
+    const y = el.getBoundingClientRect().top + window.scrollY - 100;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }
+}
+
 /* AUTH NAVBAR */
 async function checkAuthState() {
   const {
@@ -10,7 +19,11 @@ async function checkAuthState() {
   } = await supabaseClient.auth.getSession();
   const authContainer = document.getElementById("navbar-auth");
   const mobileAuthContainer = document.getElementById("mobile-navbar-auth");
-  const currentPage = window.location.pathname.split("/").pop() || "index.html";
+
+  // Perbaikan parsing URL untuk menghindari error query params (?id=...) atau hash (#)
+  let currentPage = window.location.pathname.split("/").pop() || "index.html";
+  currentPage = currentPage.split("?")[0].split("#")[0];
+
   const protectedPages = [
     "profil.html",
     "riwayat.html",
@@ -22,15 +35,15 @@ async function checkAuthState() {
 
   if (!session) {
     if (protectedPages.includes(currentPage)) {
-      window.location.href = "login.html";
-      return;
+      window.location.replace("login.html");
+      return false; // Berhenti eksekusi jika tidak auth
     }
 
     if (authContainer)
       authContainer.innerHTML = `<a href="register.html" class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm">Daftar</a><a href="login.html" class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">Masuk</a>`;
     if (mobileAuthContainer)
       mobileAuthContainer.innerHTML = `<a href="register.html" class="text-center text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-3 px-6 rounded-xl transition text-base">Daftar</a><a href="login.html" class="text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-base">Masuk</a>`;
-    return;
+    return true;
   }
 
   if (session) {
@@ -41,8 +54,8 @@ async function checkAuthState() {
       .single();
     if (error || !profile) {
       await supabaseClient.auth.signOut();
-      window.location.href = "login.html";
-      return;
+      window.location.replace("login.html");
+      return false;
     }
 
     const userName = profile.full_name || session.user.email.split("@")[0];
@@ -80,7 +93,27 @@ async function checkAuthState() {
     document
       .getElementById("btn-logout-mobile")
       ?.addEventListener("click", handleLogout);
+    return true;
   }
+}
+
+/* TOGGLE PASSWORD */
+function setupPasswordToggle() {
+  document.querySelectorAll(".toggle-password").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const targetId = this.getAttribute("data-target");
+      const input = document.getElementById(targetId);
+      const icon = this.querySelector("i");
+      if (input.type === "password") {
+        input.type = "text";
+        icon.setAttribute("data-feather", "eye-off");
+      } else {
+        input.type = "password";
+        icon.setAttribute("data-feather", "eye");
+      }
+      if (typeof feather !== "undefined") feather.replace();
+    });
+  });
 }
 
 /* AUTH FORMS */
@@ -103,6 +136,7 @@ function setupAuthForms() {
         errorBox.innerText =
           "Pendaftaran wajib menggunakan email akademisi (.ac.id)";
         errorBox.classList.remove("hidden");
+        scrollToElement("reg-error");
         return;
       }
       btnSubmit.disabled = true;
@@ -129,6 +163,7 @@ function setupAuthForms() {
         );
         errorBox.innerText =
           "Pendaftaran berhasil! Mengarahkan ke halaman masuk...";
+        scrollToElement("reg-error");
         setTimeout(() => (window.location.href = "login.html"), 2000);
       } catch (err) {
         errorBox.innerText = err.message || "Terjadi kesalahan saat mendaftar.";
@@ -140,6 +175,7 @@ function setupAuthForms() {
           "rounded-lg",
         );
         errorBox.classList.add("text-danger");
+        scrollToElement("reg-error");
       } finally {
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = "<span>Daftar Sekarang</span>";
@@ -168,6 +204,7 @@ function setupAuthForms() {
       } catch (err) {
         errorBox.innerText = "Email atau kata sandi salah.";
         errorBox.classList.remove("hidden");
+        scrollToElement("login-error");
       } finally {
         btnLogin.disabled = false;
         btnLogin.innerHTML = "<span>Masuk</span>";
@@ -330,7 +367,7 @@ async function submitReport(type, formElement, errorBoxId, btnId) {
     if (errorBox) {
       errorBox.innerText = err.message;
       errorBox.classList.remove("hidden");
-      window.scrollTo({ top: errorBox.offsetTop - 100, behavior: "smooth" });
+      scrollToElement(errorBoxId);
     }
     btnSubmit.disabled = false;
     btnSubmit.innerHTML = "<span>Kirim Laporan</span>";
@@ -713,10 +750,12 @@ async function setupProfilPage() {
       notifBox.className =
         "mb-6 p-4 rounded-xl text-sm font-semibold border bg-success-soft text-on-success-soft border-green-200 block";
       checkAuthState();
+      scrollToElement("profil-notif");
     } catch (error) {
       notifBox.innerText = error.message || "Terjadi kesalahan saat menyimpan.";
       notifBox.className =
         "mb-6 p-4 rounded-xl text-sm font-semibold border bg-danger-soft text-on-danger-soft border-red-200 block";
+      scrollToElement("profil-notif");
     } finally {
       btnSubmit.disabled = false;
       btnSubmit.innerText = "Simpan Perubahan";
@@ -977,10 +1016,13 @@ async function setupDetailLaporan() {
         ? `<button onclick="showModal('modal-hapus')" class="mt-4 w-full flex items-center justify-center gap-2 text-danger bg-danger-soft/50 hover:bg-danger-soft font-semibold py-2.5 px-4 rounded-xl transition text-[13px] border border-red-100"><i data-feather="trash-2" class="w-4 h-4"></i> Hapus Laporan Ini</button>`
         : "";
 
+    const panelStyle =
+      "sticky top-24 bg-white rounded-[24px] p-8 sm:p-10 text-left border border-gray-100 shadow-[0_16px_32px_0px_rgba(0,0,0,0.25)]";
+
     if (!currentUserId) {
-      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 text-left border border-gray-200"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
+      actionHtml = `<div class="${panelStyle}"><div class="w-12 h-12 bg-surface rounded-full flex items-center justify-center mb-4 text-primary-dark shadow-sm"><i data-feather="lock" class="w-6 h-6"></i></div><h2 class="text-lg font-bold text-text-primary mb-2">Masuk untuk Interaksi</h2><p class="text-sm text-text-secondary mb-6">Anda harus masuk ke sistem untuk berinteraksi dengan laporan ini.</p><a href="login.html" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-[15px]">Masuk Sekarang</a></div>`;
     } else if (activeClaim && activeClaim.status === "completed") {
-      actionHtml = `<div class="sticky top-24 bg-success-soft/30 border border-success-soft rounded-[24px] p-8 sm:p-10 text-center"><i data-feather="check-circle" class="w-10 h-10 text-success mx-auto mb-4"></i><h2 class="text-[20px] font-bold text-text-primary mb-2">Telah Dikembalikan</h2><p class="text-[14px] text-text-secondary">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p></div>`;
+      actionHtml = `<div class="${panelStyle} text-center"><i data-feather="check-circle" class="w-10 h-10 text-success mx-auto mb-4"></i><h2 class="text-[20px] font-bold text-text-primary mb-2">Telah Dikembalikan</h2><p class="text-[14px] text-text-secondary">Barang ini telah berhasil diserahterimakan kepada pemilik yang sah. Laporan ditutup.</p></div>`;
     } else if (activeClaim && activeClaim.status === "approved") {
       let contactProfile = null,
         contactRole = "",
@@ -1005,9 +1047,9 @@ async function setupDetailLaporan() {
       if (contactProfile) {
         const waAction = contactProfile.whatsapp
           ? `href="https://wa.me/${contactProfile.whatsapp}" target="_blank"`
-          : `href="#" onclick="document.getElementById('detail-notif').classList.remove('hidden'); document.getElementById('detail-notif').className='mb-6 p-4 rounded-xl text-sm font-semibold border block bg-warning-soft text-on-warning-soft border-yellow-200'; document.getElementById('detail-notif').innerText='Peringatan: Pengguna ini belum mencantumkan nomor WhatsApp.'; return false;"`;
+          : `href="#" onclick="document.getElementById('detail-notif').classList.remove('hidden'); document.getElementById('detail-notif').className='mb-6 p-4 rounded-xl text-sm font-semibold border block bg-warning-soft text-on-warning-soft border-yellow-200'; document.getElementById('detail-notif').innerText='Peringatan: Pengguna ini belum mencantumkan nomor WhatsApp.'; scrollToElement('detail-notif'); return false;"`;
 
-        actionHtml = `<div class="sticky top-24 bg-primary-soft/30 border border-primary-soft rounded-[24px] p-8 sm:p-10 text-left"><h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2><p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p><div class="bg-white p-5 rounded-xl border border-gray-200 mb-6 shadow-sm"><div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div><div class="font-bold text-text-primary mb-4 text-lg">${contactProfile.full_name || "Tidak ada nama"}</div><a ${waAction} class="flex items-center justify-center gap-2 w-full bg-success hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition text-[14px] shadow-sm"><i data-feather="message-circle" class="w-4 h-4"></i> Hubungi via WhatsApp</a></div><p class="text-[13px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p><button onclick="openModalSelesai('${modalDescText}')" class="w-full bg-surface border border-gray-200 hover:bg-gray-200 text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">Tandai Selesai</button></div>`;
+        actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-primary-dark mb-2 flex items-center gap-2"><i data-feather="check-circle" class="w-5 h-5"></i> Klaim Disetujui!</h2><p class="text-[14px] text-text-secondary mb-6">Silakan hubungi pihak terkait untuk melakukan proses serah terima barang.</p><div class="bg-surface p-5 rounded-xl border border-gray-200 mb-6"><div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${contactRole}</div><div class="font-bold text-text-primary mb-4 text-lg">${contactProfile.full_name || "Tidak ada nama"}</div><a ${waAction} class="flex items-center justify-center gap-2 w-full bg-success hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition text-[14px] shadow-sm"><i data-feather="message-circle" class="w-4 h-4"></i> Hubungi via WhatsApp</a></div><p class="text-[13px] text-text-secondary mb-3 text-center">Apakah serah terima sudah selesai?</p><button onclick="openModalSelesai('${modalDescText}')" class="w-full bg-white border border-gray-200 hover:bg-surface text-text-primary font-semibold py-3 rounded-xl transition text-[14px]">Tandai Selesai</button></div>`;
 
         setTimeout(() => {
           const btnSelesai = document.getElementById("btn-confirm-selesai");
@@ -1038,17 +1080,19 @@ async function setupDetailLaporan() {
                   "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
                 notifBox.innerText =
                   "Serah terima berhasil. Seluruh laporan ditutup! Memuat ulang...";
+                scrollToElement("detail-notif");
                 setTimeout(() => window.location.reload(), 2500);
               } catch (err) {
                 notifBox.className =
                   "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
                 notifBox.innerText = "Gagal menutup laporan: " + err.message;
+                scrollToElement("detail-notif");
               }
             };
           }
         }, 500);
       } else {
-        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-center"><i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Laporan Dikunci</h2><p class="text-sm text-text-secondary">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p></div>`;
+        actionHtml = `<div class="${panelStyle} text-center"><i data-feather="lock" class="w-8 h-8 text-gray-400 mx-auto mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Laporan Dikunci</h2><p class="text-sm text-text-secondary">Barang ini sedang dalam proses pengembalian kepada pemiliknya yang sah.</p></div>`;
       }
     } else if (isLost && isMyReport) {
       const { data: matches } = await supabaseClient
@@ -1064,12 +1108,12 @@ async function setupDetailLaporan() {
               `<div class="bg-surface border border-gray-200 p-4 rounded-xl mb-4 text-left"><div class="font-bold text-text-primary text-[15px] mb-1">${m.found_report?.item_name || "Barang Ditemukan"}</div><div class="text-xs text-text-secondary mb-3">Kecocokan: ${(m.total_score_internal * 100).toFixed(0)}%</div><a href="ajukan-claim.html?id=${m.found_report_id}" class="w-full block text-center border border-primary-dark text-primary-dark hover:bg-primary-soft font-semibold py-2 px-4 rounded-lg transition text-sm">Ajukan Klaim</a></div>`,
           )
           .join("");
-        actionHtml = `<div class="sticky top-24 bg-info-soft/30 border border-info-soft rounded-[24px] p-8 sm:p-10 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2><p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>${matchItemsHtml}${deleteBtnHtml}</div>`;
+        actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-text-primary mb-2 flex items-center gap-2"><i data-feather="sparkles" class="w-5 h-5 text-blue-600"></i> Potensi Kecocokan</h2><p class="text-[14px] text-text-secondary mb-6">Sistem menemukan ${matches.length} laporan penemuan yang mungkin milik Anda.</p>${matchItemsHtml}${deleteBtnHtml}</div>`;
       } else {
-        actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p>${deleteBtnHtml}</div>`;
+        actionHtml = `<div class="${panelStyle}"><i data-feather="search" class="w-8 h-8 text-gray-400 mb-3"></i><h2 class="text-lg font-bold text-text-primary mb-2">Belum Ada Kecocokan</h2><p class="text-sm text-text-secondary">Sistem terus memantau. Anda akan diberi tahu jika ada laporan barang temuan yang mirip.</p>${deleteBtnHtml}</div>`;
       }
     } else if (!isLost && !isMyReport) {
-      actionHtml = `<div class="sticky top-24 bg-surface rounded-[24px] p-8 sm:p-10 border border-gray-200 text-left"><h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a></div>`;
+      actionHtml = `<div class="${panelStyle}"><h2 class="text-[20px] font-bold text-text-primary mb-2">Ini Barang Anda?</h2><p class="text-[14px] text-text-secondary mb-8">Ajukan klaim kepemilikan dengan memberikan ciri-ciri khusus atau bukti foto kepada penemu barang.</p><a href="ajukan-claim.html?id=${report.id}" class="w-full block text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3.5 px-6 rounded-xl transition text-[15px] shadow-sm">Ajukan Klaim Sekarang</a></div>`;
     } else {
       actionHtml = `<div class="sticky top-24 bg-transparent p-0 text-center">${deleteBtnHtml}</div>`;
       document
@@ -1103,11 +1147,13 @@ async function setupDetailLaporan() {
               "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
             notifBox.innerText =
               "Laporan berhasil dihapus. Mengarahkan ke riwayat...";
+            scrollToElement("detail-notif");
             setTimeout(() => (window.location.href = "riwayat.html"), 2000);
           } catch (err) {
             notifBox.className =
               "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
             notifBox.innerText = "Gagal menghapus: " + err.message;
+            scrollToElement("detail-notif");
           }
         };
       }
@@ -1240,7 +1286,7 @@ async function setupAjukanKlaim() {
           "Klaim berhasil diajukan! Mengarahkan ke Riwayat...";
         notifBox.className =
           "mb-6 p-4 rounded-xl text-sm font-semibold border bg-success-soft text-on-success-soft border-green-200 block";
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        scrollToElement("klaim-notif");
         setTimeout(() => (window.location.href = "riwayat.html"), 2000);
       } catch (err) {
         notifBox.innerText = err.message;
@@ -1248,7 +1294,7 @@ async function setupAjukanKlaim() {
           "mb-6 p-4 rounded-xl text-sm font-semibold border bg-danger-soft text-on-danger-soft border-red-200 block";
         btnSubmit.disabled = false;
         btnSubmit.innerText = "Kirim Pengajuan Klaim";
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        scrollToElement("klaim-notif");
       }
     });
   } catch (err) {
@@ -1258,7 +1304,7 @@ async function setupAjukanKlaim() {
 
 /* TINJAU KLAIM */
 async function setupTinjauKlaim() {
-  const urlParams = newSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(window.location.search);
   const foundReportId = urlParams.get("id");
   const container = document.getElementById("tinjau-content");
   const loading = document.getElementById("tinjau-loading");
@@ -1366,12 +1412,14 @@ async function setupTinjauKlaim() {
         notifBox.className =
           "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
         notifBox.innerText = `Klaim berhasil ${newStatus === "approved" ? "disetujui" : "ditolak"}. Mengarahkan ke Riwayat...`;
+        scrollToElement("tinjau-notif");
         setTimeout(() => (window.location.href = "riwayat.html"), 2000);
       } catch (err) {
         notifBox.className =
           "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
         notifBox.innerText =
           "Gagal memproses klaim (Cek izin RLS Supabase!): " + err.message;
+        scrollToElement("tinjau-notif");
       }
     };
 
@@ -1416,9 +1464,12 @@ function setupMobileSidebar() {
 }
 
 /* INIT */
-document.addEventListener("DOMContentLoaded", () => {
-  checkAuthState();
+document.addEventListener("DOMContentLoaded", async () => {
+  const isAuthed = await checkAuthState();
+  if (isAuthed === false) return; // Hentikan eksekusi script lain jika redirecting ke login.html
+
   setupMobileSidebar();
+  setupPasswordToggle();
   setupAuthForms();
   loadMasterData();
   setupReportForms();
