@@ -38,7 +38,8 @@ async function checkAuthState() {
     data: { session },
   } = await supabaseClient.auth.getSession();
   const authContainer = document.getElementById("navbar-auth");
-  const mobileAuthContainer = document.getElementById("mobile-navbar-auth");
+  const mobileHeader = document.getElementById("mobile-sidebar-header");
+  const mobileAuthLinks = document.getElementById("mobile-auth-links");
 
   let rawPage = window.location.pathname.split("/").pop() || "index";
   let currentPage = rawPage.split("?")[0].split("#")[0].replace(".html", "");
@@ -58,18 +59,17 @@ async function checkAuthState() {
       window.location.replace("login.html");
       return false;
     }
-
     if (authContainer)
       authContainer.innerHTML = `<a href="register.html" class="text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-2.5 px-6 rounded-lg transition text-sm">Daftar</a><a href="login.html" class="bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">Masuk</a>`;
-    if (mobileAuthContainer)
-      mobileAuthContainer.innerHTML = `<a href="register.html" class="text-center text-primary-dark border border-primary-dark hover:bg-primary-soft font-semibold py-3 px-6 rounded-xl transition text-base">Daftar</a><a href="login.html" class="text-center bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-3 px-6 rounded-xl transition text-base">Masuk</a>`;
+    if (mobileAuthLinks)
+      mobileAuthLinks.innerHTML = `<a href="login.html" class="text-primary-dark">Masuk</a><a href="register.html" class="text-primary-dark">Daftar Akun</a>`;
     return true;
   }
 
   if (session) {
     const { data: profile, error } = await supabaseClient
       .from("profiles")
-      .select("full_name")
+      .select("full_name, photo_url")
       .eq("id", session.user.id)
       .single();
     if (error || !profile) {
@@ -80,57 +80,107 @@ async function checkAuthState() {
 
     const userName = profile.full_name || session.user.email.split("@")[0];
     const initial = userName.charAt(0).toUpperCase();
+    const avatarImg = profile.photo_url
+      ? `<img src="${profile.photo_url}" class="w-8 h-8 rounded-full object-cover border border-gray-200" alt="Avatar"/>`
+      : `<div class="w-8 h-8 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-xs">${initial}</div>`;
+    const avatarImgMobile = profile.photo_url
+      ? `<img src="${profile.photo_url}" class="w-10 h-10 rounded-full object-cover border border-gray-200" alt="Avatar"/>`
+      : `<div class="w-10 h-10 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-sm shrink-0">${initial}</div>`;
 
-    // SUNTIKAN UI POP UP NOTIFIKASI
     if (authContainer) {
       authContainer.innerHTML = `
         <div class="flex items-center gap-4">
           <div class="relative flex items-center">
             <button id="notif-btn" class="relative text-gray-500 hover:text-primary-dark transition p-1 focus:outline-none">
-              <i data-feather="bell" class="w-5 h-5"></i>
-              <span id="notif-badge" class="hidden absolute top-0.5 right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-white"></span>
+              <i data-feather="bell" class="w-5 h-5"></i><span id="notif-badge" class="hidden absolute top-0.5 right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-white"></span>
             </button>
             <div id="notif-dropdown" class="absolute top-full right-0 mt-4 w-[340px] bg-white border border-gray-200 rounded-2xl shadow-[0_16px_32px_0px_rgba(0,0,0,0.15)] opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-[100] overflow-hidden flex flex-col">
-              <div class="p-4 border-b border-gray-100 bg-surface flex justify-between items-center">
-                <span class="font-extrabold text-text-primary text-[15px]">Notifikasi</span>
-              </div>
-              <div id="notif-dropdown-list" class="max-h-[320px] overflow-y-auto flex flex-col divide-y divide-gray-100">
-                <div class="p-6 text-center text-xs text-text-secondary">Memuat...</div>
-              </div>
+              <div class="p-4 border-b border-gray-100 bg-surface flex justify-between items-center"><span class="font-extrabold text-text-primary text-[15px]">Notifikasi</span></div>
+              <div id="notif-dropdown-list" class="max-h-[320px] overflow-y-auto flex flex-col divide-y divide-gray-100"><div class="p-6 text-center text-xs text-text-secondary">Memuat...</div></div>
               <a href="notifikasi.html" class="p-3.5 text-center text-[13px] text-primary-dark hover:bg-primary-soft font-bold border-t border-gray-100 block transition">Lihat Semua Notifikasi</a>
             </div>
           </div>
           <div class="w-px h-6 bg-gray-200"></div>
-          <a href="profil.html" class="flex items-center gap-2 text-sm font-semibold text-text-primary hover:text-primary-dark transition"><div class="w-8 h-8 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-xs">${initial}</div><span class="hidden sm:block">${userName}</span></a>
-          <button id="btn-logout" class="text-xs text-danger font-semibold border border-danger-soft px-3 py-1.5 rounded-lg hover:bg-danger-soft transition ml-2">Keluar</button>
+          
+          <div class="relative flex items-center">
+            <button id="profile-btn" class="flex items-center gap-2 focus:outline-none hover:opacity-80 transition">
+              ${avatarImg}
+              <span class="hidden sm:block text-sm font-semibold text-text-primary">${userName}</span>
+              <i data-feather="chevron-down" class="w-4 h-4 text-gray-500"></i>
+            </button>
+            <div id="profile-dropdown" class="absolute top-full right-0 mt-4 w-48 bg-white border border-gray-200 rounded-2xl shadow-[0_16px_32px_0px_rgba(0,0,0,0.15)] opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-[100] overflow-hidden flex flex-col">
+              <a href="profil.html" class="px-4 py-3 text-sm font-medium text-text-primary hover:bg-surface border-b border-gray-100 transition flex items-center gap-2"><i data-feather="user" class="w-4 h-4"></i> Profil Saya</a>
+              <button id="btn-logout-desktop" class="w-full text-left px-4 py-3 text-sm font-medium text-danger hover:bg-danger-soft transition flex items-center gap-2"><i data-feather="log-out" class="w-4 h-4"></i> Keluar</button>
+            </div>
+          </div>
         </div>`;
+
+      // Toggle Profile Dropdown
+      const profileBtn = document.getElementById("profile-btn");
+      const profileDropdown = document.getElementById("profile-dropdown");
+      if (profileBtn && profileDropdown) {
+        profileBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          profileDropdown.classList.toggle("opacity-0");
+          profileDropdown.classList.toggle("invisible");
+          profileDropdown.classList.toggle("-translate-y-2");
+          profileDropdown.classList.toggle("translate-y-0");
+        });
+        document.addEventListener("click", (e) => {
+          if (
+            !profileBtn.contains(e.target) &&
+            !profileDropdown.contains(e.target)
+          ) {
+            profileDropdown.classList.add(
+              "opacity-0",
+              "invisible",
+              "-translate-y-2",
+            );
+            profileDropdown.classList.remove("translate-y-0");
+          }
+        });
+      }
     }
 
-    if (mobileAuthContainer) {
-      mobileAuthContainer.innerHTML = `
-        <a href="notifikasi.html" class="flex items-center justify-between bg-surface p-4 rounded-xl border border-gray-100 mb-2 hover:border-primary-dark transition">
-          <div class="flex items-center gap-3 text-text-primary font-bold"><i data-feather="bell" class="w-5 h-5 text-gray-500"></i> Notifikasi</div>
-          <span id="mobile-notif-badge" class="hidden bg-danger text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Baru</span>
-        </a>
-        <a href="profil.html" class="flex items-center gap-3 bg-surface p-3 rounded-xl border border-gray-100 mb-2">
-          <div class="w-10 h-10 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-sm shrink-0">${initial}</div>
-          <span class="font-bold text-text-primary truncate">${userName}</span>
-        </a>
-        <button id="btn-logout-mobile" class="w-full text-center text-danger font-semibold border border-danger-soft bg-danger-soft hover:bg-red-200 py-3 px-6 rounded-xl transition text-sm">Keluar Akun</button>
+    if (mobileHeader) {
+      mobileHeader.innerHTML = `
+        <div class="flex items-center gap-3">
+          ${avatarImgMobile}
+          <div class="flex flex-col">
+            <span class="font-bold text-text-primary text-[15px] truncate max-w-[120px]">${userName}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="notifikasi.html" class="relative text-gray-500 hover:text-primary-dark">
+            <i data-feather="bell" class="w-5 h-5"></i><span id="mobile-notif-badge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-white"></span>
+          </a>
+          <button id="mobile-close-btn-dynamic" class="text-gray-500 hover:text-danger focus:outline-none"><i data-feather="x" class="w-6 h-6"></i></button>
+        </div>`;
+
+      document
+        .getElementById("mobile-close-btn-dynamic")
+        .addEventListener("click", () =>
+          document.getElementById("mobile-menu-btn").click(),
+        );
+    }
+
+    if (mobileAuthLinks) {
+      mobileAuthLinks.innerHTML = `
+        <a href="profil.html" class="hover:text-primary-dark">Profil Saya</a>
+        <a href="#" id="btn-logout-mobile" class="text-danger hover:text-red-700">Keluar</a>
       `;
     }
 
     if (typeof feather !== "undefined") feather.replace();
-
-    // INIT NOTIF DROPDOWN LOGIC
     initGlobalNotifications(session.user.id);
 
-    const handleLogout = async () => {
+    const handleLogout = async (e) => {
+      e.preventDefault();
       await supabaseClient.auth.signOut();
       window.location.href = "login.html";
     };
     document
-      .getElementById("btn-logout")
+      .getElementById("btn-logout-desktop")
       ?.addEventListener("click", handleLogout);
     document
       .getElementById("btn-logout-mobile")
@@ -155,7 +205,6 @@ async function initGlobalNotifications(userId) {
       notifDropdown.classList.toggle("-translate-y-2");
       notifDropdown.classList.toggle("translate-y-0");
     });
-
     document.addEventListener("click", (e) => {
       if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
         notifDropdown.classList.add("opacity-0", "invisible", "-translate-y-2");
@@ -171,7 +220,6 @@ async function initGlobalNotifications(userId) {
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(5);
-
     if (error) throw error;
 
     const unreadCount = data.filter((n) => !n.is_read).length;
@@ -181,7 +229,6 @@ async function initGlobalNotifications(userId) {
     }
 
     if (!notifList) return;
-
     if (data.length === 0) {
       notifList.innerHTML = `<div class="p-8 text-center text-xs text-text-secondary flex flex-col items-center"><i data-feather="bell-off" class="w-6 h-6 text-gray-300 mb-2"></i>Belum ada notifikasi.</div>`;
       if (typeof feather !== "undefined") feather.replace();
@@ -200,20 +247,17 @@ async function initGlobalNotifications(userId) {
           hour: "2-digit",
           minute: "2-digit",
         });
-
         return `
         <a href="${n.link_url || "#"}" data-id="${n.id}" class="notif-item block p-4 transition relative ${bgClass}">
           <span class="${dotClass} w-2 h-2 rounded-full bg-info absolute top-5 right-4"></span>
           <div class="font-bold text-text-primary text-[13px] mb-1.5 pr-4">${n.title}</div>
           <div class="text-xs text-text-secondary mb-2 line-clamp-2 leading-relaxed">${n.message}</div>
           <div class="text-[10px] text-gray-400 font-semibold flex items-center gap-1"><i data-feather="clock" class="w-3 h-3"></i>${time} WIB</div>
-        </a>
-      `;
+        </a>`;
       })
       .join("");
 
     if (typeof feather !== "undefined") feather.replace();
-
     document.querySelectorAll(".notif-item").forEach((item) => {
       item.addEventListener("click", async (e) => {
         e.preventDefault();
@@ -256,7 +300,6 @@ async function setupNotifikasiPage() {
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false })
         .range((page - 1) * limit, (page - 1) * limit + limit - 1);
-
       if (error) throw error;
       totalData = count || 0;
 
@@ -280,7 +323,6 @@ async function setupNotifikasiPage() {
             hour: "2-digit",
             minute: "2-digit",
           });
-
           return `
           <a href="${n.link_url || "#"}" data-id="${n.id}" class="notif-page-item flex items-start gap-4 p-5 sm:p-6 transition relative ${bgClass}">
             <div class="w-10 h-10 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center shrink-0 mt-1"><i data-feather="bell" class="w-5 h-5"></i></div>
@@ -290,8 +332,7 @@ async function setupNotifikasiPage() {
               <div class="text-[11px] text-gray-400 font-semibold flex items-center gap-1.5"><i data-feather="clock" class="w-3.5 h-3.5"></i> ${time} WIB</div>
             </div>
             <span class="${dotClass} w-2.5 h-2.5 rounded-full bg-info absolute top-8 right-6"></span>
-          </a>
-        `;
+          </a>`;
         })
         .join("");
 
@@ -965,7 +1006,6 @@ async function setupProfilPage() {
         .toUpperCase();
     }
 
-    // RENDER UI TELEGRAM
     const tgActionContainer = document.getElementById(
       "telegram-action-container",
     );
@@ -976,7 +1016,6 @@ async function setupProfilPage() {
         tgStatusText.innerHTML = `<span class="text-success font-semibold flex items-center gap-1"><i data-feather="check-circle" class="w-3.5 h-3.5"></i> Terhubung</span> Akun Telegram Anda telah aktif menerima notifikasi.`;
         tgActionContainer.innerHTML = `<button type="button" id="btn-disconnect-tg" class="bg-white border border-danger text-danger hover:bg-danger-soft font-semibold py-2 px-4 rounded-lg transition text-[13px] shadow-sm">Putuskan Koneksi</button>`;
 
-        // Logika Putuskan Koneksi Telegram
         document
           .getElementById("btn-disconnect-tg")
           .addEventListener("click", async () => {
@@ -1009,7 +1048,6 @@ async function setupProfilPage() {
           });
       } else {
         tgStatusText.innerHTML = `Hubungkan Telegram untuk menerima pemberitahuan instan saat ada potensi kecocokan barang.`;
-        // Deep link ke Bot dengan parameter user_id
         const botUsername = "foundex_web_bot";
         const tgLink = `https://t.me/${botUsername}?start=${session.user.id}`;
         tgActionContainer.innerHTML = `<a href="${tgLink}" target="_blank" class="bg-[#2AABEE] hover:opacity-90 text-white font-semibold py-2.5 px-5 rounded-xl transition text-[14px] shadow-sm whitespace-nowrap block text-center">Hubungkan Telegram</a>`;
