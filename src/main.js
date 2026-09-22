@@ -3,6 +3,25 @@ const SUPABASE_URL = "https://lkirrwcajisknzshdxop.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_0KCurhCXb3YEFDeXTRw-OQ_kefVS921";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+/* PRE-AUTH CHECK */
+(function blockUnauthorizedAccess() {
+  try {
+    const protectedPages = [
+      "profil",
+      "riwayat",
+      "lapor-hilang",
+      "lapor-temuan",
+      "tinjau-klaim",
+      "ajukan-claim",
+    ];
+    let rawPage = window.location.pathname.split("/").pop() || "index";
+    let currentPage = rawPage.split("?")[0].split("#")[0].replace(".html", "");
+    const session = localStorage.getItem("sb-lkirrwcajisknzshdxop-auth-token");
+    if (protectedPages.includes(currentPage) && !session)
+      window.location.replace("login.html");
+  } catch (e) {}
+})();
+
 /* HELPER SCROLL */
 function scrollToElement(elementId) {
   const el = document.getElementById(elementId);
@@ -20,7 +39,6 @@ async function checkAuthState() {
   const authContainer = document.getElementById("navbar-auth");
   const mobileAuthContainer = document.getElementById("mobile-navbar-auth");
 
-  // FIX: Mengatasi Clean URLs dari Vercel dengan menghapus ekstensi .html untuk pengecekan
   let rawPage = window.location.pathname.split("/").pop() || "index";
   let currentPage = rawPage.split("?")[0].split("#")[0].replace(".html", "");
 
