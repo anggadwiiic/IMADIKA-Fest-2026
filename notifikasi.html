@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifikasi - FOUNDEX</title>
+    <link href="./output.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="/src/upn.png" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+  </head>
+  <body
+    class="bg-background text-text-primary font-sans antialiased min-h-screen flex flex-col"
+  >
+    <!-- Navbar -->
+    <nav
+      id="main-navbar"
+      class="h-[80px] px-6 lg:px-12 bg-background border-b border-gray-100 flex items-center justify-between sticky top-0 z-50 transition-shadow duration-300"
+    >
+      <a
+        href="index.html"
+        class="font-extrabold text-2xl text-primary-dark tracking-tight"
+        >FOUNDEX</a
+      >
+      <div
+        class="hidden lg:flex gap-10 text-sm font-medium text-gray-600 items-center h-full"
+      >
+        <a
+          href="index.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Beranda</a
+        >
+        <div class="relative flex items-center h-full">
+          <button
+            id="dropdown-btn"
+            class="flex items-center gap-1 hover:text-primary-dark transition-colors duration-200 focus:outline-none"
+          >
+            Laporan
+            <i
+              data-feather="chevron-down"
+              id="dropdown-icon"
+              class="w-4 h-4 transition-transform duration-300"
+            ></i>
+          </button>
+          <div
+            id="dropdown-menu"
+            class="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-50 overflow-hidden"
+          >
+            <a
+              href="lapor-hilang.html"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-gray-50 transition"
+              >Kehilangan Barang</a
+            >
+            <a
+              href="lapor-temuan.html"
+              class="block px-5 py-3 text-text-primary font-medium hover:bg-gray-50 transition"
+              >Menemukan Barang</a
+            >
+          </div>
+        </div>
+        <a
+          href="daftar-laporan.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Daftar Laporan</a
+        >
+        <a
+          href="riwayat.html"
+          class="hover:text-primary-dark transition-colors duration-200"
+          >Riwayat Laporan</a
+        >
+      </div>
+      <div class="hidden lg:flex items-center gap-4" id="navbar-auth"></div>
+      <button
+        id="mobile-menu-btn"
+        class="lg:hidden text-gray-600 focus:outline-none"
+      >
+        <i data-feather="menu" class="w-6 h-6"></i>
+      </button>
+    </nav>
+
+    <!-- Mobile Sidebar Menu Overlay -->
+    <div
+      id="mobile-sidebar-overlay"
+      class="fixed inset-0 bg-black/50 z-[60] hidden opacity-0 transition-opacity duration-300"
+    ></div>
+    <!-- Mobile Sidebar Content -->
+    <div
+      id="mobile-sidebar"
+      class="fixed top-0 right-0 h-full w-64 bg-white z-[70] shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col"
+    >
+      <div
+        class="flex items-center justify-between p-6 border-b border-gray-100"
+      >
+        <span class="font-extrabold text-xl text-primary-dark tracking-tight"
+          >MENU</span
+        >
+        <button
+          id="mobile-close-btn"
+          class="text-gray-500 hover:text-danger focus:outline-none"
+        >
+          <i data-feather="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <div
+        class="flex-grow overflow-y-auto p-6 flex flex-col gap-6 text-base font-semibold text-gray-700"
+      >
+        <a href="index.html" class="hover:text-primary-dark">Beranda</a>
+        <a href="lapor-hilang.html" class="hover:text-primary-dark"
+          >Lapor Kehilangan</a
+        >
+        <a href="lapor-temuan.html" class="hover:text-primary-dark"
+          >Lapor Penemuan</a
+        >
+        <a href="daftar-laporan.html" class="hover:text-primary-dark"
+          >Daftar Laporan</a
+        >
+        <a href="riwayat.html" class="hover:text-primary-dark"
+          >Riwayat Laporan</a
+        >
+      </div>
+      <div
+        class="p-6 border-t border-gray-100 flex flex-col gap-3"
+        id="mobile-navbar-auth"
+      ></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-[800px] mx-auto px-6 py-12 flex-grow w-full">
+      <div
+        class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4"
+      >
+        <div>
+          <h1
+            class="text-[32px] font-bold text-text-primary leading-[1.2] tracking-tight mb-2"
+          >
+            Semua Notifikasi
+          </h1>
+          <p class="text-text-secondary text-base">
+            Pantau pembaruan sistem dan aktivitas laporan Anda.
+          </p>
+        </div>
+        <button
+          onclick="showModal('modal-mark-all')"
+          class="w-full sm:w-auto flex items-center justify-center gap-2 text-primary-dark font-semibold border border-primary-dark hover:bg-primary-soft px-5 py-2.5 rounded-xl transition text-[14px]"
+        >
+          <i data-feather="check-square" class="w-4 h-4"></i> Tandai Semua
+          Dibaca
+        </button>
+      </div>
+
+      <div
+        id="notifikasi-snackbar"
+        class="hidden mb-6 p-4 rounded-xl text-sm font-semibold border shadow-sm"
+      ></div>
+
+      <div
+        class="bg-white border border-gray-200 rounded-[24px] shadow-sm overflow-hidden"
+      >
+        <div
+          id="notifikasi-list"
+          class="flex flex-col divide-y divide-gray-100"
+        >
+          <div class="p-10 text-center text-text-secondary">
+            Memuat notifikasi...
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        id="notif-pagination-container"
+        class="flex items-center justify-center gap-2 mt-8 hidden"
+      ></div>
+    </main>
+
+    <!-- Modal Konfirmasi Tandai Dibaca -->
+    <div
+      id="modal-mark-all"
+      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300"
+    >
+      <div
+        class="bg-white rounded-[24px] p-8 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-300"
+        id="modal-mark-all-content"
+      >
+        <div
+          class="w-12 h-12 rounded-full bg-info-soft text-blue-600 flex items-center justify-center mb-5"
+        >
+          <i data-feather="help-circle" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-xl font-bold text-text-primary mb-2">
+          Tandai Semua Dibaca?
+        </h3>
+        <p class="text-sm text-text-secondary leading-relaxed mb-8">
+          Apakah Anda yakin ingin menandai seluruh notifikasi Anda sebagai telah
+          dibaca?
+        </p>
+        <div class="flex gap-3">
+          <button
+            onclick="hideModal('modal-mark-all')"
+            class="flex-1 bg-surface text-text-primary hover:bg-gray-200 font-semibold py-2.5 rounded-xl transition text-sm focus:outline-none"
+          >
+            Batal
+          </button>
+          <button
+            id="btn-confirm-mark-all"
+            class="flex-1 bg-primary-dark hover:bg-primary-pressed text-white font-semibold py-2.5 rounded-xl transition text-sm shadow-sm focus:outline-none"
+          >
+            Ya, Tandai
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#111827] text-white pt-16 pb-6 mt-auto">
+      <div
+        class="max-w-[1200px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-6 mb-12"
+      >
+        <div class="md:col-span-6 lg:col-span-5">
+          <div class="flex items-center gap-3 mb-6">
+            <div>
+              <div class="font-extrabold text-lg tracking-tight">FOUNDEX</div>
+              <div class="text-xs text-gray-400">Lost and Found System</div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm mb-8 max-w-[320px] leading-relaxed">
+            Laporkan, Cari, dan Klaim Barangmu yang hilang dalam satu platform
+            yang terintegrasi
+          </p>
+        </div>
+      </div>
+      <div
+        class="border-t border-gray-800 pt-6 text-center text-xs text-gray-500"
+      >
+        &copy; 2026 UPN "Veteran" Jawa Timur.
+      </div>
+    </footer>
+
+    <script src="./src/main.js"></script>
+    <script>
+      feather.replace();
+      // Dropdown Navbar Logic
+      const dropdownBtn = document.getElementById("dropdown-btn");
+      const dropdownMenu = document.getElementById("dropdown-menu");
+      const dropdownIcon = document.getElementById("dropdown-icon");
+
+      dropdownBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle("opacity-0");
+        dropdownMenu.classList.toggle("invisible");
+        dropdownMenu.classList.toggle("-translate-y-2");
+        dropdownMenu.classList.toggle("translate-y-0");
+        dropdownMenu.classList.toggle("opacity-100");
+        dropdownIcon.classList.toggle("rotate-180");
+      });
+      document.addEventListener("click", (e) => {
+        if (
+          !dropdownBtn.contains(e.target) &&
+          !dropdownMenu.contains(e.target)
+        ) {
+          dropdownMenu.classList.add(
+            "opacity-0",
+            "invisible",
+            "-translate-y-2",
+          );
+          dropdownMenu.classList.remove(
+            "opacity-100",
+            "visible",
+            "translate-y-0",
+          );
+          dropdownIcon.classList.remove("rotate-180");
+        }
+      });
+
+      function showModal(modalId) {
+        const modal = document.getElementById(modalId),
+          content = document.getElementById(modalId + "-content");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        setTimeout(() => {
+          modal.classList.remove("opacity-0");
+          content.classList.remove("scale-95");
+        }, 10);
+      }
+      function hideModal(modalId) {
+        const modal = document.getElementById(modalId),
+          content = document.getElementById(modalId + "-content");
+        modal.classList.add("opacity-0");
+        content.classList.add("scale-95");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+        }, 300);
+      }
+    </script>
+  </body>
+</html>

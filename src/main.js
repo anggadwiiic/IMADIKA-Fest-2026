@@ -3,7 +3,7 @@ const SUPABASE_URL = "https://lkirrwcajisknzshdxop.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_0KCurhCXb3YEFDeXTRw-OQ_kefVS921";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* PRE-AUTH CHECK */
+/* PRE-AUTH CHECK (Cegah FOUC) */
 (function blockUnauthorizedAccess() {
   try {
     const protectedPages = [
@@ -13,6 +13,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       "lapor-temuan",
       "tinjau-klaim",
       "ajukan-claim",
+      "notifikasi",
     ];
     let rawPage = window.location.pathname.split("/").pop() || "index";
     let currentPage = rawPage.split("?")[0].split("#")[0].replace(".html", "");
@@ -31,7 +32,7 @@ function scrollToElement(elementId) {
   }
 }
 
-/* AUTH NAVBAR */
+/* AUTH NAVBAR & NOTIFIKASI DROPDOWN */
 async function checkAuthState() {
   const {
     data: { session },
@@ -49,6 +50,7 @@ async function checkAuthState() {
     "lapor-temuan",
     "tinjau-klaim",
     "ajukan-claim",
+    "notifikasi",
   ];
 
   if (!session) {
@@ -79,10 +81,25 @@ async function checkAuthState() {
     const userName = profile.full_name || session.user.email.split("@")[0];
     const initial = userName.charAt(0).toUpperCase();
 
+    // SUNTIKAN UI POP UP NOTIFIKASI
     if (authContainer) {
       authContainer.innerHTML = `
         <div class="flex items-center gap-4">
-          <button class="relative text-gray-500 hover:text-primary-dark transition p-1 focus:outline-none"><i data-feather="bell" class="w-5 h-5"></i><span class="absolute top-1 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-white"></span></button>
+          <div class="relative flex items-center">
+            <button id="notif-btn" class="relative text-gray-500 hover:text-primary-dark transition p-1 focus:outline-none">
+              <i data-feather="bell" class="w-5 h-5"></i>
+              <span id="notif-badge" class="hidden absolute top-0.5 right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-white"></span>
+            </button>
+            <div id="notif-dropdown" class="absolute top-full right-0 mt-4 w-[340px] bg-white border border-gray-200 rounded-2xl shadow-[0_16px_32px_0px_rgba(0,0,0,0.15)] opacity-0 invisible transform -translate-y-2 transition-all duration-300 z-[100] overflow-hidden flex flex-col">
+              <div class="p-4 border-b border-gray-100 bg-surface flex justify-between items-center">
+                <span class="font-extrabold text-text-primary text-[15px]">Notifikasi</span>
+              </div>
+              <div id="notif-dropdown-list" class="max-h-[320px] overflow-y-auto flex flex-col divide-y divide-gray-100">
+                <div class="p-6 text-center text-xs text-text-secondary">Memuat...</div>
+              </div>
+              <a href="notifikasi.html" class="p-3.5 text-center text-[13px] text-primary-dark hover:bg-primary-soft font-bold border-t border-gray-100 block transition">Lihat Semua Notifikasi</a>
+            </div>
+          </div>
           <div class="w-px h-6 bg-gray-200"></div>
           <a href="profil.html" class="flex items-center gap-2 text-sm font-semibold text-text-primary hover:text-primary-dark transition"><div class="w-8 h-8 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-xs">${initial}</div><span class="hidden sm:block">${userName}</span></a>
           <button id="btn-logout" class="text-xs text-danger font-semibold border border-danger-soft px-3 py-1.5 rounded-lg hover:bg-danger-soft transition ml-2">Keluar</button>
@@ -91,6 +108,10 @@ async function checkAuthState() {
 
     if (mobileAuthContainer) {
       mobileAuthContainer.innerHTML = `
+        <a href="notifikasi.html" class="flex items-center justify-between bg-surface p-4 rounded-xl border border-gray-100 mb-2 hover:border-primary-dark transition">
+          <div class="flex items-center gap-3 text-text-primary font-bold"><i data-feather="bell" class="w-5 h-5 text-gray-500"></i> Notifikasi</div>
+          <span id="mobile-notif-badge" class="hidden bg-danger text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Baru</span>
+        </a>
         <a href="profil.html" class="flex items-center gap-3 bg-surface p-3 rounded-xl border border-gray-100 mb-2">
           <div class="w-10 h-10 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-bold text-sm shrink-0">${initial}</div>
           <span class="font-bold text-text-primary truncate">${userName}</span>
@@ -100,6 +121,9 @@ async function checkAuthState() {
     }
 
     if (typeof feather !== "undefined") feather.replace();
+
+    // INIT NOTIF DROPDOWN LOGIC
+    initGlobalNotifications(session.user.id);
 
     const handleLogout = async () => {
       await supabaseClient.auth.signOut();
@@ -113,6 +137,240 @@ async function checkAuthState() {
       ?.addEventListener("click", handleLogout);
     return true;
   }
+}
+
+/* GLOBAL NOTIFICATION DROPDOWN LOGIC */
+async function initGlobalNotifications(userId) {
+  const notifBtn = document.getElementById("notif-btn");
+  const notifDropdown = document.getElementById("notif-dropdown");
+  const notifBadge = document.getElementById("notif-badge");
+  const notifList = document.getElementById("notif-dropdown-list");
+  const mobileNotifBadge = document.getElementById("mobile-notif-badge");
+
+  if (notifBtn && notifDropdown) {
+    notifBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      notifDropdown.classList.toggle("opacity-0");
+      notifDropdown.classList.toggle("invisible");
+      notifDropdown.classList.toggle("-translate-y-2");
+      notifDropdown.classList.toggle("translate-y-0");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+        notifDropdown.classList.add("opacity-0", "invisible", "-translate-y-2");
+        notifDropdown.classList.remove("translate-y-0");
+      }
+    });
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (error) throw error;
+
+    const unreadCount = data.filter((n) => !n.is_read).length;
+    if (unreadCount > 0) {
+      if (notifBadge) notifBadge.classList.remove("hidden");
+      if (mobileNotifBadge) mobileNotifBadge.classList.remove("hidden");
+    }
+
+    if (!notifList) return;
+
+    if (data.length === 0) {
+      notifList.innerHTML = `<div class="p-8 text-center text-xs text-text-secondary flex flex-col items-center"><i data-feather="bell-off" class="w-6 h-6 text-gray-300 mb-2"></i>Belum ada notifikasi.</div>`;
+      if (typeof feather !== "undefined") feather.replace();
+      return;
+    }
+
+    notifList.innerHTML = data
+      .map((n) => {
+        const bgClass = n.is_read
+          ? "bg-white hover:bg-surface"
+          : "bg-info-soft/40 hover:bg-info-soft/70";
+        const dotClass = n.is_read ? "hidden" : "block";
+        const time = new Date(n.created_at).toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        return `
+        <a href="${n.link_url || "#"}" data-id="${n.id}" class="notif-item block p-4 transition relative ${bgClass}">
+          <span class="${dotClass} w-2 h-2 rounded-full bg-info absolute top-5 right-4"></span>
+          <div class="font-bold text-text-primary text-[13px] mb-1.5 pr-4">${n.title}</div>
+          <div class="text-xs text-text-secondary mb-2 line-clamp-2 leading-relaxed">${n.message}</div>
+          <div class="text-[10px] text-gray-400 font-semibold flex items-center gap-1"><i data-feather="clock" class="w-3 h-3"></i>${time} WIB</div>
+        </a>
+      `;
+      })
+      .join("");
+
+    if (typeof feather !== "undefined") feather.replace();
+
+    document.querySelectorAll(".notif-item").forEach((item) => {
+      item.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const href = item.getAttribute("href");
+        const id = item.getAttribute("data-id");
+        await supabaseClient
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("id", id);
+        if (href && href !== "#") window.location.href = href;
+      });
+    });
+  } catch (err) {
+    console.error("Gagal memuat notif:", err);
+  }
+}
+
+/* HALAMAN NOTIFIKASI FULL (PAGINASI) */
+async function setupNotifikasiPage() {
+  const listContainer = document.getElementById("notifikasi-list");
+  const pagContainer = document.getElementById("notif-pagination-container");
+  const notifBox = document.getElementById("notifikasi-snackbar");
+  if (!listContainer) return;
+
+  const {
+    data: { session },
+  } = await supabaseClient.auth.getSession();
+  if (!session) return;
+
+  let page = 1;
+  const limit = 10;
+  let totalData = 0;
+
+  const fetchFullNotifs = async () => {
+    listContainer.innerHTML = `<div class="p-10 text-center text-text-secondary">Memuat notifikasi...</div>`;
+    try {
+      const { data, count, error } = await supabaseClient
+        .from("notifications")
+        .select("*", { count: "exact" })
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false })
+        .range((page - 1) * limit, (page - 1) * limit + limit - 1);
+
+      if (error) throw error;
+      totalData = count || 0;
+
+      if (data.length === 0) {
+        listContainer.innerHTML = `<div class="p-16 text-center flex flex-col items-center justify-center"><div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4"><i data-feather="bell-off" class="w-8 h-8 text-gray-400"></i></div><h3 class="text-lg font-bold text-text-primary mb-1">Belum ada notifikasi</h3><p class="text-sm text-text-secondary">Aktivitas dan pembaruan akan muncul di sini.</p></div>`;
+        pagContainer.classList.add("hidden");
+        if (typeof feather !== "undefined") feather.replace();
+        return;
+      }
+
+      listContainer.innerHTML = data
+        .map((n) => {
+          const bgClass = n.is_read
+            ? "bg-white hover:bg-surface"
+            : "bg-info-soft/30 hover:bg-info-soft/60";
+          const dotClass = n.is_read ? "hidden" : "block";
+          const time = new Date(n.created_at).toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+          return `
+          <a href="${n.link_url || "#"}" data-id="${n.id}" class="notif-page-item flex items-start gap-4 p-5 sm:p-6 transition relative ${bgClass}">
+            <div class="w-10 h-10 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center shrink-0 mt-1"><i data-feather="bell" class="w-5 h-5"></i></div>
+            <div class="flex-grow pr-6">
+              <h4 class="font-bold text-text-primary text-[15px] mb-1.5">${n.title}</h4>
+              <p class="text-[14px] text-text-secondary mb-3 leading-relaxed">${n.message}</p>
+              <div class="text-[11px] text-gray-400 font-semibold flex items-center gap-1.5"><i data-feather="clock" class="w-3.5 h-3.5"></i> ${time} WIB</div>
+            </div>
+            <span class="${dotClass} w-2.5 h-2.5 rounded-full bg-info absolute top-8 right-6"></span>
+          </a>
+        `;
+        })
+        .join("");
+
+      if (typeof feather !== "undefined") feather.replace();
+      renderPagination();
+
+      document.querySelectorAll(".notif-page-item").forEach((item) => {
+        item.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const href = item.getAttribute("href");
+          const id = item.getAttribute("data-id");
+          await supabaseClient
+            .from("notifications")
+            .update({ is_read: true })
+            .eq("id", id);
+          if (href && href !== "#") window.location.href = href;
+        });
+      });
+    } catch (err) {
+      listContainer.innerHTML = `<div class="p-10 text-center text-danger font-semibold">Gagal memuat notifikasi.</div>`;
+    }
+  };
+
+  const renderPagination = () => {
+    const totalPages = Math.ceil(totalData / limit);
+    if (totalPages <= 1) {
+      pagContainer.classList.add("hidden");
+      return;
+    }
+    pagContainer.classList.remove("hidden");
+
+    let html = `<button onclick="changeNotifPage(${page - 1})" class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 ${page === 1 ? "text-gray-300 cursor-not-allowed" : "text-text-secondary hover:bg-surface"} transition" ${page === 1 ? "disabled" : ""}><i data-feather="chevron-left" class="w-4 h-4"></i></button>`;
+    for (let i = 1; i <= totalPages; i++)
+      html += `<button onclick="changeNotifPage(${i})" class="w-10 h-10 flex items-center justify-center rounded-xl font-semibold transition ${i === page ? "bg-primary-dark text-white shadow-sm" : "text-text-secondary hover:bg-surface"}">${i}</button>`;
+    html += `<button onclick="changeNotifPage(${page + 1})" class="w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 ${page === totalPages ? "text-gray-300 cursor-not-allowed" : "text-text-secondary hover:bg-surface"} transition" ${page === totalPages ? "disabled" : ""}><i data-feather="chevron-right" class="w-4 h-4"></i></button>`;
+    pagContainer.innerHTML = html;
+    if (typeof feather !== "undefined") feather.replace();
+  };
+
+  window.changeNotifPage = (newPage) => {
+    const totalPages = Math.ceil(totalData / limit);
+    if (newPage >= 1 && newPage <= totalPages) {
+      page = newPage;
+      fetchFullNotifs();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const btnMarkAll = document.getElementById("btn-confirm-mark-all");
+  if (btnMarkAll) {
+    btnMarkAll.addEventListener("click", async () => {
+      hideModal("modal-mark-all");
+      notifBox.classList.remove("hidden");
+      notifBox.className =
+        "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-info-soft text-on-info-soft border-blue-200";
+      notifBox.innerText = "Memproses...";
+      scrollToElement("notifikasi-snackbar");
+      try {
+        const { error } = await supabaseClient
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("user_id", session.user.id)
+          .eq("is_read", false);
+        if (error) throw error;
+        notifBox.className =
+          "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-success-soft text-on-success-soft border-green-200";
+        notifBox.innerText = "Semua notifikasi berhasil ditandai sudah dibaca.";
+        scrollToElement("notifikasi-snackbar");
+        fetchFullNotifs();
+        initGlobalNotifications(session.user.id);
+      } catch (err) {
+        notifBox.className =
+          "mb-6 p-4 rounded-xl text-sm font-semibold border block bg-danger-soft text-on-danger-soft border-red-200";
+        notifBox.innerText = "Gagal memproses: " + err.message;
+        scrollToElement("notifikasi-snackbar");
+      }
+    });
+  }
+  fetchFullNotifs();
 }
 
 /* TOGGLE PASSWORD */
