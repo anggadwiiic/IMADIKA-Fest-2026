@@ -1,6 +1,5 @@
 const { createClient } = require("@supabase/supabase-js");
 
-// Fungsi Pembantu: Cosine Similarity untuk Teks (Deskripsi)
 function getCosineSimilarity(str1, str2) {
   if (!str1 || !str2) return 0;
   const getTokens = (str) => str.toLowerCase().match(/\w+/g) || [];
@@ -20,7 +19,6 @@ function getCosineSimilarity(str1, str2) {
 }
 
 module.exports = async (req, res) => {
-  // Cegah CORS issue jika dipanggil dari browser
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -37,7 +35,8 @@ module.exports = async (req, res) => {
     }
 
     const newReport = payload.record;
-    console.log("Menerima Webhook Laporan:", newReport?.id);
+    console.log("\n=====================");
+    console.log("Menerima Laporan:", newReport?.item_name);
 
     if (!newReport || newReport.status !== "active") {
       return res.status(200).send("Ignored");
@@ -56,12 +55,8 @@ module.exports = async (req, res) => {
       .eq("category_id", newReport.category_id)
       .eq("status", "active");
 
-    if (error) {
-      console.error("Query Error:", error);
-      return res.status(500).send("DB Error");
-    }
-
-    if (!candidates || candidates.length === 0) {
+    if (error || !candidates || candidates.length === 0) {
+      console.log("Tidak ada kandidat kategori yang sama.");
       return res.status(200).send("No match");
     }
 
@@ -90,9 +85,11 @@ module.exports = async (req, res) => {
       if (timeScore >= 0.5) supportCount++;
       if (textScore >= 0.2) supportCount++;
 
-      console.log(`Skor: ${totalScore} | Support: ${supportCount}`);
+      console.log(`Skor Kemiripan: ${totalScore} | Support: ${supportCount}`);
 
       if (totalScore >= 0.6 && supportCount >= 2) {
+        console.log("=> STATUS: LOLOS EVALUASI. Memproses DB...");
+
         const lostId = newReport.type === "lost" ? newReport.id : candidate.id;
         const foundId =
           newReport.type === "found" ? newReport.id : candidate.id;
@@ -105,21 +102,42 @@ module.exports = async (req, res) => {
           time_diff_days: diffDays,
         };
 
-        await supabase.from("matches").upsert(
-          [
-            {
-              lost_report_id: lostId,
-              found_report_id: foundId,
-              category_score: catScore,
-              location_score: locScore,
-              time_score: timeScore.toFixed(2),
-              description_score: textScore.toFixed(2),
-              total_score_internal: totalScore.toFixed(3),
-              reasons_json: reasonsJson,
-            },
-          ],
-          { onConflict: "lost_report_id, found_report_id" },
-        );
+        // 1. Simpan ke tabel matches (Menggunakan insert aman)
+        // Kita ubah toFixed menjadi parseFloat agar menjadi tipe Number di DB
+        const matchPayload = {
+          lost_report_id: lostId,
+          found_report_id: foundId,
+          category_score: parseFloat(catScore),
+          location_score: parseFloat(locScore),
+          time_score: parseFloat(timeScore.toFixed(2)),
+          description_score: parseFloat(textScore.toFixed(2)),
+          total_score_internal: parseFloat(totalScore.toFixed(3)),
+          reasons_json: reasonsJson,
+        };
+
+        // Cek dulu apakah data sudah pernah masuk (Mencegah Unique Constraint Error)
+        const { data: existMatch } = await supabase
+          .from("matches")
+          .select("id")
+          .eq("lost_report_id", lostId)
+          .eq("found_report_id", foundId)
+          .single();
+
+        if (!existMatch) {
+          const { error: matchErr } = await supabase
+            .from("matches")
+            .insert([matchPayload]);
+          if (matchErr)
+            console.error("GAGAL SIMPAN MATCHES:", matchErr.message);
+          else console.log("- Berhasil simpan ke tabel matches.");
+        } else {
+          const { error: updErr } = await supabase
+            .from("matches")
+            .update(matchPayload)
+            .eq("id", existMatch.id);
+          if (updErr) console.error("GAGAL UPDATE MATCHES:", updErr.message);
+          else console.log("- Berhasil update tabel matches.");
+        }
 
         const lostReporterId =
           newReport.type === "lost"
@@ -128,39 +146,55 @@ module.exports = async (req, res) => {
         const itemNameStr =
           newReport.type === "lost" ? newReport.item_name : candidate.item_name;
 
-        await supabase.from("notifications").insert([
-          {
-            user_id: lostReporterId,
-            title: "Potensi Kecocokan Baru!",
-            message: `Sistem menemukan barang temuan yang mirip dengan laporan kehilangan [${itemNameStr}] Anda.`,
-            link_url: `detail-laporan.html?id=${lostId}`,
-          },
-        ]);
+        // 2. Simpan Notifikasi Web
+        const { error: notifErr } = await supabase
+          .from("notifications")
+          .insert([
+            {
+              user_id: lostReporterId,
+              title: "Potensi Kecocokan Baru!",
+              message: `Sistem menemukan barang temuan yang mirip dengan laporan kehilangan [${itemNameStr}] Anda.`,
+              link_url: `detail-laporan.html?id=${lostId}`,
+            },
+          ]);
+        if (notifErr)
+          console.error("GAGAL SIMPAN NOTIFIKASI:", notifErr.message);
+        else console.log("- Berhasil simpan notifikasi web.");
 
-        // Push Notif Telegram
+        // 3. Push Notif Telegram
         const { data: lostProfile } = await supabase
           .from("profiles")
           .select("telegram_chat_id")
           .eq("id", lostReporterId)
           .single();
+
         if (lostProfile && lostProfile.telegram_chat_id) {
           const tgUrl = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`;
           const tgMsg = `Halo! Terdapat laporan penemuan barang pada website FOUNDEX.\n\nSistem menemukan potensi kecocokan dengan tingkat kemiripan ${(totalScore * 100).toFixed(0)}% untuk laporan *${itemNameStr}* Anda.\n\nCek sekarang di:\nhttps://foundexweb.vercel.app/detail-laporan.html?id=${lostId}`;
 
-          await fetch(tgUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: lostProfile.telegram_chat_id,
-              text: tgMsg,
-            }),
-          });
+          try {
+            const tgRes = await fetch(tgUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: lostProfile.telegram_chat_id,
+                text: tgMsg,
+              }),
+            });
+            const tgData = await tgRes.json();
+            if (!tgRes.ok) console.error("GAGAL KIRIM TELEGRAM:", tgData);
+            else console.log("- Berhasil kirim pesan Telegram!");
+          } catch (fetchErr) {
+            console.error("TELEGRAM FETCH ERROR:", fetchErr);
+          }
+        } else {
+          console.log("- Pelapor tidak memiliki telegram_chat_id.");
         }
       }
     }
     return res.status(200).send("Processed");
   } catch (error) {
-    console.error(error);
+    console.error("FATAL ERROR:", error);
     return res.status(500).send("Error");
   }
 };
